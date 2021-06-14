@@ -1,0 +1,18 @@
+syntax = "proto3";
+package gateway;
+option go_package = "flynndcs.com/flynndcs/grpc-gateway/proto/gateway";
+
+import "google/api/annotations.proto";
+import "gateway/messages.proto";
+
+service Gateway {
+  rpc Status (StatusRequest) returns (StatusReply) {
+    option (google.api.http) = {
+      get: "/api/status"
+    };
+  }
+}
+
+service Product{
+  rpc ProductStatus (ProductStatusRequest) returns (ProductStatusReply){}
+}

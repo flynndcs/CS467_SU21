@@ -1,0 +1,31 @@
+syntax = "proto3";
+option go_package = "flynndcs.com/flynndcs/grpc-gateway/proto/gateway";
+
+/*
+  gRPC MESSAGE DEFINITIONS 
+*/
+
+/* 
+  GATEWAY SERVICE
+*/
+
+// The status request message (REST request: GET /api/status)
+message StatusRequest{
+}
+
+// The response message containing the status (response to StatusRequest)
+message StatusReply {
+  string status = 1;
+}
+
+/* 
+  PRODUCT SERVICE
+*/
+
+// The status request message (gRPC)
+message ProductStatusRequest{}
+
+// The response to the product status request
+message ProductStatusReply{
+  string status = 1;
+}
