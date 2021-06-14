@@ -7,7 +7,8 @@ import (
 	"net/http"
 
 	gatewaypb "flynndcs.com/flynndcs/grpc-gateway/proto/gateway"
-	server "flynndcs.com/flynndcs/grpc-gateway/src/grpcServer/servers"
+	gateway "flynndcs.com/flynndcs/grpc-gateway/src/service/gateway"
+	product "flynndcs.com/flynndcs/grpc-gateway/src/service/product"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 )
@@ -30,8 +31,8 @@ func createGRPCServer(lis net.Listener) {
 	//create the gRPC server that manages gRPC services
 	s := grpc.NewServer()
 	// Attach the services to the server
-	gatewaypb.RegisterGatewayServer(s, &server.GatewayServer{})
-	gatewaypb.RegisterProductServer(s, &server.ProductServer{})
+	gatewaypb.RegisterGatewayServer(s, &gateway.GatewayServer{})
+	gatewaypb.RegisterProductServer(s, &product.ProductServer{})
 	// Serve gRPC Server
 	log.Println("Serving gRPC on " + lis.Addr().String())
 	go func() {
