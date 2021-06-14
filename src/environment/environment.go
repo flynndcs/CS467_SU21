@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	gatewaypb "flynndcs.com/flynndcs/grpc-gateway/proto/gateway"
+	gatewaypb "flynndcs.com/flynndcs/grpc-gateway/proto/service"
 	gateway "flynndcs.com/flynndcs/grpc-gateway/src/service/gateway"
 	product "flynndcs.com/flynndcs/grpc-gateway/src/service/product"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"

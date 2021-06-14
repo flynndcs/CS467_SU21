@@ -10,4 +10,4 @@ plugins:
     out: proto
     opt: paths=source_relative
   - name: openapiv2
-    out: proto/gateway/openapiv2
+    out: proto/openapiv2

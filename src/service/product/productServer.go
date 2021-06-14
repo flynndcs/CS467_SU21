@@ -1,7 +1,7 @@
 package grpcServer
 
 import (
-	gatewaypb "flynndcs.com/flynndcs/grpc-gateway/proto/gateway"
+	gatewaypb "flynndcs.com/flynndcs/grpc-gateway/proto/service"
 )
 
 /*

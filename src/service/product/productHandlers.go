@@ -3,7 +3,7 @@ package grpcServer
 import (
 	"context"
 
-	gatewaypb "flynndcs.com/flynndcs/grpc-gateway/proto/gateway"
+	gatewaypb "flynndcs.com/flynndcs/grpc-gateway/proto/service"
 )
 
 //	Product service returns a reply directly (this is where service specific logic would occur)

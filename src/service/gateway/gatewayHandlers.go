@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	gatewaypb "flynndcs.com/flynndcs/grpc-gateway/proto/gateway"
+	gatewaypb "flynndcs.com/flynndcs/grpc-gateway/proto/service"
 	"google.golang.org/grpc"
 )
 
