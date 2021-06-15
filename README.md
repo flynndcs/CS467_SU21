@@ -11,10 +11,16 @@ This repo is the beginnings of a microservice architecture using gRPC, gRPC-Gate
 - [Install buf](https://docs.buf.build/installation/) 
 
 - [Install FoundationDB client and server](https://apple.github.io/foundationdb/downloads.html)
+    - This should start automatically. To verify, run `fdbcli` on your command line and check the status.
 
 - Clone this repository and navigate to root of repository
 
-- Generate gRPC client/server/proxy code 
+## Running the Services (Gateway, Product)
+
+- Resolve dependency from buf.yaml
+    - `buf beta mod update`
+
+- Generate gRPC client/server/proxy code and resolve dependencies
     - `buf generate`
 
 - Navigate to root directory and run:
