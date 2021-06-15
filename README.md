@@ -1,6 +1,6 @@
 # Untitled CS467 Project Starter Repo
 
-This repo is the beginnings of a back end microservice architecture written around gRPC, gRPC-Gateway, and Go. 
+This repo is the beginnings of a back end microservice architecture written around gRPC, gRPC-Gateway, and FoundationDB - written in Go. 
 
 ## Getting Started
 - (*Windows*)
