@@ -1,5 +1,5 @@
 #!/bin/bash
 
-buf generate;
+buf generate
 echo "Services and messages generated"
 go run . :8080 :8090
