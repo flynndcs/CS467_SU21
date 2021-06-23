@@ -6,13 +6,35 @@ import "google/api/annotations.proto";
 import "service/messages.proto";
 
 service Gateway {
-  rpc Status (StatusRequest) returns (StatusReply) {
+  rpc GetStatus (StatusRequest) returns (StatusReply) {
     option (google.api.http) = {
       get: "/api/status"
+    };
+  }
+
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse){
+    option (google.api.http) = {
+      get: "/api/product/name/{productName}"
+    };
+  }
+
+  rpc PutProduct(PutProductRequest) returns (PutProductResponse){
+    option (google.api.http) = {
+      post: "/api/product/name"
+      body: "*"
+    };
+  }
+
+  rpc ClearProduct(ClearProductRequest) returns (ClearProductResponse){
+    option (google.api.http) = {
+      delete: "api/product/name/{productName}"
     };
   }
 }
 
 service Product{
-  rpc ProductStatus (ProductStatusRequest) returns (ProductStatusReply){}
+  rpc GetProductStatus (ProductStatusRequest) returns (ProductStatusReply){}
+  rpc GetProduct (GetProductRequest) returns (GetProductResponse){}
+  rpc PutProduct (PutProductRequest) returns (PutProductResponse){}
+  rpc ClearProduct (ClearProductRequest) returns (ClearProductResponse){}
 }

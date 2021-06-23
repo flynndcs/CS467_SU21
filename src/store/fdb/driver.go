@@ -6,7 +6,7 @@ import (
 	"github.com/apple/foundationdb/bindings/go/src/fdb"
 )
 
-func Put(key string, value []byte) {
+func Put(key string, value []byte) (didPut bool) {
 	fdb.MustAPIVersion(630)
 	db := fdb.MustOpenDefault()
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
@@ -14,11 +14,13 @@ func Put(key string, value []byte) {
 		return
 	})
 	if err != nil {
-		log.Fatalf("Unable to set value (%v)", err)
+		log.Fatalf("Unable to set value: (%v)", err)
+		return false
 	}
+	return true
 }
 
-func Get(key string) (value string) {
+func Get(key string) (value []byte) {
 	fdb.MustAPIVersion(630)
 	db := fdb.MustOpenDefault()
 	ret, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
@@ -26,9 +28,9 @@ func Get(key string) (value string) {
 		return
 	})
 	if err != nil {
-		log.Fatalf("Unable to read FDB database value (%v)", err)
+		log.Fatalf("Unable to read FDB database value: (%v)", err)
 	}
-	return string(ret.([]byte))
+	return ret.([]byte)
 }
 
 func Clear(key string) (didClear bool) {
@@ -39,7 +41,7 @@ func Clear(key string) (didClear bool) {
 		return
 	})
 	if err != nil {
-		log.Fatalf("Unable to clear FDB database key-value pair for ker (%v)", err)
+		log.Fatalf("Unable to clear FDB database key-value pair for key: (%v)", err)
 		return false
 	}
 	return true

@@ -30,3 +30,27 @@ message ProductStatusRequest{}
 message ProductStatusReply{
   string status = 1;
 }
+
+message GetProductRequest{
+  string productName = 1;
+}
+
+message GetProductResponse{
+  string productName = 1;
+  string productUUID = 2;
+}
+
+message PutProductRequest{
+  string productName = 1;
+}
+
+message PutProductResponse{
+  string productName = 1;
+  string productUUID = 2;
+}
+
+message ClearProductRequest{
+  string productName = 1;
+}
+
+message ClearProductResponse{}
