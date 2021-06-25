@@ -1,15 +1,11 @@
 package grpcServer
 
 import (
-	gatewaypb "flynndcs.com/flynndcs/grpc-gateway/proto/service"
+	"flynndcs.com/flynndcs/grpc-gateway/proto/service"
 )
 
-/*
-	GATEWAY SERVICE IMPLEMENTATIONS (?)
-*/
-
 type GatewayServer struct {
-	gatewaypb.UnimplementedGatewayServer
+	service.UnimplementedGatewayServer
 }
 
 func NewGatewayServer() *GatewayServer {

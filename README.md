@@ -19,27 +19,49 @@ This repo is the beginnings of a microservice architecture using gRPC, gRPC-Gate
 
 - Resolve dependency from buf.yaml
     - `buf beta mod update`
+- Option 1:
+    - Generate gRPC client/server/proxy code and resolve dependencies
+        - `buf generate`
 
-- Generate gRPC client/server/proxy code and resolve dependencies
-    - `buf generate`
+    - Navigate to root directory and run:
+        - `go run . :8080 :8090`
+        - Expected output: 
+            ```
+            (timestamp) Serving gRPC on [::]:8080
+            (timestamp) Serving gRPC-Gateway on :8090
+            ```
 
-- Navigate to root directory and run:
-    - `go run . :8080 :8090`
-    - Expected output: 
-        ```
-        (timestamp) Serving gRPC on [::]:8080
-        (timestamp) Serving gRPC-Gateway on :8090
-        ```
-
-- Or... run `./startService`
+- Option 2: 
+    - run `./startService`
     - generate from .proto and run gRPC server and REST proxy
 
+## Usage (Gateway, Product API)
 - Using browser, Postman or cURL:
     - HTTP GET to localhost:8090/api/status
-    - Expected response:
-        ```
-        { "status": "GATEWAY STATUS: NORMAL, PRODUCT STATUS: NORMAL, KEY: ..., VALUE: ..."}
-        ```
+        - Expected response:
+            ```
+            { "status": "GATEWAY STATUS: NORMAL, PRODUCT STATUS: NORMAL"}
+            ```
+    - HTTP POST to localhost:8090/api/product/name
+        - With body:
+            ```
+            {"productName": "<product name>"}
+            ```
+        - Expected response:
+            ```
+            {"productName": "<product name>", "productUUID": "<random UUID>"}
+            ```
+    - HTTP GET to localhost:8090/api/product/name/{productName} *productName entry must have been previously created via POST*
+        - Expected response:
+            ```
+            {"productName": "<product name>", "productUUID": "<random UUID>"}
+            ```
+    - HTTP DELETE to localhost:8090/api/product/name/{productname} *productName entry must have been previously created via POST*
+        - Expected response (empty is success):
+            ```
+            {}
+            ```
+
 
 ## Development
 
@@ -69,6 +91,7 @@ This repo is the beginnings of a microservice architecture using gRPC, gRPC-Gate
 - The **store** directory holds storage layer implementations
     - Currently in progress with FoundationDB (**store/fdb**) Worth discussing and exploring alternatives.
         - this includes a basic driver file that can be called from handlers to connect and query the database.
+            - Includes get, put, and clear methods
 
     
 
