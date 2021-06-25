@@ -27,7 +27,7 @@ service Gateway {
 
   rpc ClearProduct(ClearProductRequest) returns (ClearProductResponse){
     option (google.api.http) = {
-      delete: "api/product/name/{productName}"
+      delete: "/api/product/name/{productName}"
     };
   }
 }

@@ -53,3 +53,16 @@ func (s *GatewayServer) PutProduct(ctx context.Context, in *gatewaypb.PutProduct
 	}
 	return &gatewaypb.PutProductResponse{ProductName: putProductResponse.ProductName, ProductUUID: putProductResponse.ProductUUID}, nil
 }
+
+func (s *GatewayServer) ClearProduct(ctx context.Context, in *gatewaypb.ClearProductRequest) (*gatewaypb.ClearProductResponse, error) {
+
+	productConn, productErr := grpc.DialContext(context.Background(), "0.0.0.0:8080", grpc.WithBlock(), grpc.WithInsecure())
+	if productErr != nil {
+		log.Fatalln("Failed to dial", productErr)
+	}
+	_, err := gatewaypb.NewProductClient(productConn).ClearProduct(ctx, &gatewaypb.ClearProductRequest{ProductName: in.GetProductName()})
+	if err != nil {
+		log.Fatalln("Failed to send", err)
+	}
+	return &gatewaypb.ClearProductResponse{}, nil
+}

@@ -45,3 +45,10 @@ func (s *ProductServer) PutProduct(ctx context.Context, in *gatewaypb.PutProduct
 	}
 	return &gatewaypb.PutProductResponse{ProductName: in.ProductName, ProductUUID: uuidString}, nil
 }
+
+func (s *ProductServer) ClearProduct(ctx context.Context, in *gatewaypb.ClearProductRequest) (*gatewaypb.ClearProductResponse, error) {
+	if !fdb.Clear(in.ProductName) {
+		return nil, errors.New(" could not clear product from FDB")
+	}
+	return &gatewaypb.ClearProductResponse{}, nil
+}
