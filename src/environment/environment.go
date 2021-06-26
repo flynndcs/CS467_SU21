@@ -16,6 +16,10 @@ import (
 func RegisterAndServeEnvironment(tcpTarget string, httpTarget string) {
 	lis := createTCPListener(tcpTarget)
 	createGRPCServer(lis)
+
+	//validate the creation of connection and clients for the gRPC services
+	gateway.CreateGRPCConnAndClients()
+
 	registerHTTPProxy(tcpTarget, httpTarget)
 }
 
@@ -28,11 +32,11 @@ func createTCPListener(target string) net.Listener {
 }
 
 func createGRPCServer(lis net.Listener) {
-	//create the gRPC server that manages gRPC services
+	//create the gRPC server that manages gRPC service server instances
 	s := grpc.NewServer()
-	// Attach the services to the server
-	gatewaypb.RegisterGatewayServer(s, &gateway.GatewayServer{})
-	gatewaypb.RegisterProductServer(s, &product.ProductServer{})
+	// Attach the service server instances to the grpc server
+	gatewaypb.RegisterGatewayServer(s, gateway.NewGatewayServer())
+	gatewaypb.RegisterProductServer(s, product.NewProductServer())
 	// Serve gRPC Server
 	log.Println("Serving gRPC on " + lis.Addr().String())
 	go func() {

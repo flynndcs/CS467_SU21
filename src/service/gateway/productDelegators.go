@@ -5,28 +5,22 @@ import (
 	"log"
 
 	"flynndcs.com/flynndcs/grpc-gateway/proto/service"
-	"google.golang.org/grpc"
 )
 
+//this method called by gateway REST proxy via get product endpoint, uses gRPC side ProductClient to call GetProduct
 func (s *GatewayServer) GetProduct(ctx context.Context, in *service.GetProductRequest) (*service.GetProductResponse, error) {
-	productConn, productErr := grpc.DialContext(context.Background(), "0.0.0.0:8080", grpc.WithBlock(), grpc.WithInsecure())
-	if productErr != nil {
-		log.Fatalln("Failed to dial server when creating product client:", productErr)
-	}
-	getProductResponse, err := service.NewProductClient(productConn).GetProduct(ctx, &service.GetProductRequest{ProductName: in.ProductName})
+	//use product client to call GetProduct method defined in handler
+	getProductResponse, err := productClient.GetProduct(ctx, &service.GetProductRequest{ProductName: in.ProductName})
 	if err != nil {
 		log.Fatalln("Failed when sending a message with product client:", err)
 	}
 
+	//return a response message using the response from GetProduct
 	return &service.GetProductResponse{ProductName: getProductResponse.GetProductName(), ProductUUID: getProductResponse.GetProductUUID()}, nil
 }
 
 func (s *GatewayServer) PutProduct(ctx context.Context, in *service.PutProductRequest) (*service.PutProductResponse, error) {
-	productConn, productErr := grpc.DialContext(context.Background(), "0.0.0.0:8080", grpc.WithBlock(), grpc.WithInsecure())
-	if productErr != nil {
-		log.Fatalln("Failed to dial", productErr)
-	}
-	putProductResponse, err := service.NewProductClient(productConn).PutProduct(ctx, &service.PutProductRequest{ProductName: in.GetProductName()})
+	putProductResponse, err := productClient.PutProduct(ctx, &service.PutProductRequest{ProductName: in.GetProductName()})
 	if err != nil {
 		log.Fatalln("Failed to send", err)
 	}
@@ -34,12 +28,7 @@ func (s *GatewayServer) PutProduct(ctx context.Context, in *service.PutProductRe
 }
 
 func (s *GatewayServer) ClearProduct(ctx context.Context, in *service.ClearProductRequest) (*service.ClearProductResponse, error) {
-
-	productConn, productErr := grpc.DialContext(context.Background(), "0.0.0.0:8080", grpc.WithBlock(), grpc.WithInsecure())
-	if productErr != nil {
-		log.Fatalln("Failed to dial", productErr)
-	}
-	_, err := service.NewProductClient(productConn).ClearProduct(ctx, &service.ClearProductRequest{ProductName: in.GetProductName()})
+	_, err := productClient.ClearProduct(ctx, &service.ClearProductRequest{ProductName: in.GetProductName()})
 	if err != nil {
 		log.Fatalln("Failed to send", err)
 	}
