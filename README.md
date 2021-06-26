@@ -92,6 +92,15 @@ This repo is the beginnings of a microservice architecture using gRPC, gRPC-Gate
     - Currently in progress with FoundationDB (**store/fdb**) Worth discussing and exploring alternatives.
         - this includes a basic driver file that can be called from handlers to connect and query the database.
             - Includes get, put, and clear methods
+- FoundationDB is a key-value store meaning any create, read, update, delete operations operate on key-value pairs.
+    - The current driver code uses strings for keys and encoded byte buffers for values which are deserialized from the protobuf messages and serialized back into protobuf messages upon retrieval.
+    - Examples
+        - Put
+            - the gateway handler for PutProduct delegates to the product client's PutProduct handler which puts a value in FoundationDB using the product name as a key and a deserialized product name and random UUID for the value.
+        - Get
+            - the getProduct handler uses the product name as key to get the deserialized GetProductResponse (byte representation of product name and random UUID) then serializes it into the GetProductResponse format to be returned
+        
 
-    
+
+        
 
