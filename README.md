@@ -19,30 +19,18 @@ This repo is the beginnings of a microservice architecture using gRPC, gRPC-Gate
 
 - Resolve dependency from buf.yaml
     - `buf beta mod update`
-- Option 1:
-    - Generate gRPC client/server/proxy code and resolve dependencies
-        - `buf generate`
 
-    - Navigate to root directory and run:
-        - `go run . :8080 :8090`
-        - Expected output: 
-            ```
-            (timestamp) Serving gRPC on [::]:8080
-            (timestamp) Serving gRPC-Gateway on :8090
-            ```
-
-- Option 2: 
-    - run `./startService`
-    - generate from .proto and run gRPC server and REST proxy
+- run `./startService`
+    - generates from protobuf files, sets logging settings and starts REST/GRPC services
 
 ## Usage (Gateway, Product API)
 - Using browser, Postman or cURL:
-    - HTTP GET to localhost:8090/api/status
+    - Get Status: HTTP GET to localhost:8090/api/status
         - Expected response:
             ```
             { "status": "GATEWAY STATUS: NORMAL, PRODUCT STATUS: NORMAL"}
             ```
-    - HTTP POST to localhost:8090/api/product/name
+    - Put Product: HTTP POST to localhost:8090/api/product/name
         - With body:
             ```
             {"productName": "<product name>"}
@@ -51,12 +39,30 @@ This repo is the beginnings of a microservice architecture using gRPC, gRPC-Gate
             ```
             {"productName": "<product name>", "productUUID": "<random UUID>"}
             ```
-    - HTTP GET to localhost:8090/api/product/name/{productName} *productName entry must have been previously created via POST*
+    - Get Product: HTTP GET to localhost:8090/api/product/name/{productName} *productName entry must have been previously created via POST*
         - Expected response:
             ```
             {"productName": "<product name>", "productUUID": "<random UUID>"}
             ```
-    - HTTP DELETE to localhost:8090/api/product/name/{productname} *productName entry must have been previously created via POST*
+    - Get Product Range: HTTP GET to localhost:8090/api/product/name/{beginName}/{endName}
+        - the end of the range (endName) is inclusive - a matching value for this key will be included
+        - Expected response
+            - all matching values for these keys in this range
+            ```
+            {
+                "products": [
+                    {
+                        "productName": "<first product matching beginName>",
+                        "productUUID": "<uuid>"
+                    },
+                    {
+                        "productName": "<last product matching endName",
+                        "productUUID": "<uuid>"
+                    }
+                ]
+            }
+            ```
+    - Delete Product: HTTP DELETE to localhost:8090/api/product/name/{productname} *productName entry must have been previously created via POST*
         - Expected response (empty is success):
             ```
             {}
@@ -92,14 +98,14 @@ This repo is the beginnings of a microservice architecture using gRPC, gRPC-Gate
     - Currently in progress with FoundationDB (**store/fdb**) Worth discussing and exploring alternatives.
         - this includes a basic driver file that can be called from handlers to connect and query the database.
             - Includes get, put, and clear methods
-- FoundationDB is a key-value store meaning any create, read, update, delete operations operate on key-value pairs.
-    - The current driver code uses strings for keys and encoded byte buffers for values which are deserialized from the protobuf messages and serialized back into protobuf messages upon retrieval.
-    - Examples
-        - Put
-            - the gateway handler for PutProduct delegates to the product client's PutProduct handler which puts a value in FoundationDB using the product name as a key and a deserialized product name and random UUID for the value.
-        - Get
-            - the getProduct handler uses the product name as key to get the deserialized GetProductResponse (byte representation of product name and random UUID) then serializes it into the GetProductResponse format to be returned
-        
+    - FoundationDB is a key-value store meaning any create, read, update, delete operations operate on key-value pairs.
+        - The current driver code uses strings for keys and encoded byte buffers for values which are deserialized from the protobuf messages and serialized back into protobuf messages upon retrieval.
+        - Examples
+            - Put
+                - the gateway handler for PutProduct delegates to the product client's PutProduct handler which puts a value in FoundationDB using the product name as a key and a deserialized product name and random UUID for the value.
+            - Get
+                - the getProduct handler uses the product name as key to get the deserialized GetProductResponse (byte representation of product name and random UUID) then serializes it into the GetProductResponse format to be returned
+            
 
 
         

@@ -14,7 +14,8 @@ var (
 	db              fdb.Database
 )
 
-func initFDB() (db fdb.Database) {
+func InitFDB() {
+	log.Default().Println("initializing FDB")
 	fdb.MustAPIVersion(630)
 	db = fdb.MustOpenDefault()
 	productDir, err := directory.CreateOrOpen(db, []string{"product"}, nil)
@@ -22,11 +23,9 @@ func initFDB() (db fdb.Database) {
 		log.Fatal(err)
 	}
 	productSubspace = productDir.Sub("product")
-	return db
 }
 
 func Put(key string, value []byte) (didPut bool) {
-	db = initFDB()
 	productKey := productSubspace.Pack(tuple.Tuple{key})
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		tr.Set(productKey, value)
@@ -40,7 +39,6 @@ func Put(key string, value []byte) (didPut bool) {
 }
 
 func Get(key string) (value []byte) {
-	db = initFDB()
 	productKey := productSubspace.Pack(tuple.Tuple{key})
 	ret, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		ret = tr.Get(productKey).MustGet()
@@ -53,19 +51,19 @@ func Get(key string) (value []byte) {
 }
 
 func GetRange(beginKey string, endKey string) (repeatedValue []byte) {
-	db = initFDB()
 	beginProductKey := productSubspace.Pack(tuple.Tuple{beginKey})
-	endProductKey := productSubspace.Pack(tuple.Tuple{endKey})
+	endKeyInclusive, errStrinc := fdb.Strinc([]byte(endKey))
+	if errStrinc != nil {
+		log.Fatal("Could not get real end key from endKey")
+	}
+	endProductKey := productSubspace.Pack(tuple.Tuple{string(endKeyInclusive)})
 
-	log.Default().Println("begin: ", beginKey)
-	log.Default().Println("end: ", endKey)
 	selectorRange := fdb.SelectorRange{Begin: fdb.FirstGreaterOrEqual(beginProductKey), End: fdb.FirstGreaterOrEqual(endProductKey)}
 
 	var values []byte
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		retIter := tr.GetRange(selectorRange, fdb.RangeOptions{}).Iterator()
-		for retIter.Advance() {
-			kv := retIter.MustGet()
+		retIter := tr.GetRange(selectorRange, fdb.RangeOptions{}).GetSliceOrPanic()
+		for _, kv := range retIter {
 			values = append(values, kv.Value...)
 		}
 		return values, nil
@@ -78,7 +76,6 @@ func GetRange(beginKey string, endKey string) (repeatedValue []byte) {
 }
 
 func Clear(key string) (didClear bool) {
-	db = initFDB()
 	productKey := productSubspace.Pack(tuple.Tuple{key})
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		tr.Clear(productKey)

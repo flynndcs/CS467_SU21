@@ -29,7 +29,6 @@ func (s *ProductServer) GetProduct(ctx context.Context, in *service.GetProductRe
 
 func (s *ProductServer) GetProductRange(ctx context.Context, in *service.GetProductRangeRequest) (*service.GetProductRangeResponse, error) {
 	value := fdbDriver.GetRange(in.BeginProductName, in.EndProductName)
-	log.Default().Println(value)
 	buffer := bytes.NewBuffer(value)
 	dec := gob.NewDecoder(buffer)
 

@@ -9,11 +9,13 @@ import (
 	gatewaypb "flynndcs.com/flynndcs/grpc-gateway/proto/service"
 	gateway "flynndcs.com/flynndcs/grpc-gateway/src/service/gateway"
 	product "flynndcs.com/flynndcs/grpc-gateway/src/service/product"
+	fdbDriver "flynndcs.com/flynndcs/grpc-gateway/src/store/fdb"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 )
 
 func RegisterAndServeEnvironment(tcpTarget string, httpTarget string) {
+	fdbDriver.InitFDB()
 	lis := createTCPListener(tcpTarget)
 	createGRPCServer(lis)
 
