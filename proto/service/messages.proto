@@ -31,35 +31,34 @@ message ProductStatusReply{
   string status = 1;
 }
 
-message GetProductRequest{
-  string productName = 1;
+message GetSingleProductRequest{
+  repeated string scope = 1;
 }
 
-message GetProductResponse{
-  string productName = 1;
-  string productUUID = 2;
-}
-
-message GetProductRangeRequest{
-  string beginProductName = 1;
-  string endProductName = 2;
-}
-
-message GetProductRangeResponse {
-  repeated PutProductResponse products = 1;
-}
-
-message PutProductRequest{
-  string productName = 1;
-}
-
-message PutProductResponse{
+message GetSingleProductResponse{
   string productName = 1;
   string productUUID = 2;
 }
 
-message ClearProductRequest{
-  string productName = 1;
+message GetProductsInScopeRequest{
+  repeated string scope = 1;
 }
 
-message ClearProductResponse{}
+message GetProductsInScopeResponse {
+  repeated PutSingleProductResponse products = 1;
+}
+
+message PutSingleProductRequest{
+  repeated string scope = 1;
+}
+
+message PutSingleProductResponse{
+  string productName = 1;
+  string productUUID = 2;
+}
+
+message ClearSingleProductRequest{
+  repeated string scope = 1;
+}
+
+message ClearSingleProductResponse{}

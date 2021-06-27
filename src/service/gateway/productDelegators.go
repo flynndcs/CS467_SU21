@@ -8,40 +8,41 @@ import (
 )
 
 //this method called by gateway REST proxy via get product endpoint, uses gRPC side ProductClient to call GetProduct
-func (s *GatewayServer) GetProduct(ctx context.Context, in *service.GetProductRequest) (*service.GetProductResponse, error) {
+func (s *GatewayServer) GetSingleProduct(ctx context.Context, in *service.GetSingleProductRequest) (*service.GetSingleProductResponse, error) {
 	//use product client to call GetProduct method defined in handler
-	getProductResponse, err := productClient.GetProduct(ctx, &service.GetProductRequest{ProductName: in.ProductName})
+	log.Println(in.Scope)
+	GetSingleProductResponse, err := productClient.GetSingleProduct(ctx, &service.GetSingleProductRequest{Scope: in.Scope})
 	if err != nil {
 		log.Fatalln("Failed when sending a message with product client:", err)
 	}
 
 	//return a response message using the response from GetProduct
-	return &service.GetProductResponse{ProductName: getProductResponse.GetProductName(), ProductUUID: getProductResponse.GetProductUUID()}, nil
+	return &service.GetSingleProductResponse{ProductName: GetSingleProductResponse.GetProductName(), ProductUUID: GetSingleProductResponse.GetProductUUID()}, nil
 }
 
-func (s *GatewayServer) GetProductRange(ctx context.Context, in *service.GetProductRangeRequest) (*service.GetProductRangeResponse, error) {
+func (s *GatewayServer) GetProductsInScope(ctx context.Context, in *service.GetProductsInScopeRequest) (*service.GetProductsInScopeResponse, error) {
 	//use product client to call GetProduct method defined in handler
-	getProductRangeResponse, err := productClient.GetProductRange(ctx, &service.GetProductRangeRequest{BeginProductName: in.BeginProductName, EndProductName: in.EndProductName})
+	GetProductsInScopeResponse, err := productClient.GetProductsInScope(ctx, &service.GetProductsInScopeRequest{Scope: in.Scope})
 	if err != nil {
 		log.Fatalln("Failed when sending a message with product client:", err)
 	}
 
 	//return a response message using the response from GetProduct
-	return &service.GetProductRangeResponse{Products: getProductRangeResponse.GetProducts()}, nil
+	return &service.GetProductsInScopeResponse{Products: GetProductsInScopeResponse.GetProducts()}, nil
 }
 
-func (s *GatewayServer) PutProduct(ctx context.Context, in *service.PutProductRequest) (*service.PutProductResponse, error) {
-	putProductResponse, err := productClient.PutProduct(ctx, &service.PutProductRequest{ProductName: in.GetProductName()})
+func (s *GatewayServer) PutSingleProduct(ctx context.Context, in *service.PutSingleProductRequest) (*service.PutSingleProductResponse, error) {
+	PutSingleProductResponse, err := productClient.PutSingleProduct(ctx, &service.PutSingleProductRequest{Scope: in.Scope})
 	if err != nil {
 		log.Fatalln("Failed to send", err)
 	}
-	return &service.PutProductResponse{ProductName: putProductResponse.ProductName, ProductUUID: putProductResponse.ProductUUID}, nil
+	return &service.PutSingleProductResponse{ProductName: PutSingleProductResponse.ProductName, ProductUUID: PutSingleProductResponse.ProductUUID}, nil
 }
 
-func (s *GatewayServer) ClearProduct(ctx context.Context, in *service.ClearProductRequest) (*service.ClearProductResponse, error) {
-	_, err := productClient.ClearProduct(ctx, &service.ClearProductRequest{ProductName: in.GetProductName()})
+func (s *GatewayServer) ClearSingleProduct(ctx context.Context, in *service.ClearSingleProductRequest) (*service.ClearSingleProductResponse, error) {
+	_, err := productClient.ClearSingleProduct(ctx, &service.ClearSingleProductRequest{Scope: in.Scope})
 	if err != nil {
 		log.Fatalln("Failed to send", err)
 	}
-	return &service.ClearProductResponse{}, nil
+	return &service.ClearSingleProductResponse{}, nil
 }

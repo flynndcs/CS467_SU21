@@ -1,6 +1,8 @@
 package fdb
 
 import (
+	"bytes"
+	"encoding/gob"
 	"log"
 
 	"github.com/apple/foundationdb/bindings/go/src/fdb"
@@ -25,8 +27,13 @@ func InitFDB() {
 	productSubspace = productDir.Sub("product")
 }
 
-func Put(key string, value []byte) (didPut bool) {
-	productKey := productSubspace.Pack(tuple.Tuple{key})
+func Put(exactScope []string, value []byte) (didPut bool) {
+	log.Println(exactScope)
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	enc.Encode(exactScope)
+
+	productKey := productSubspace.Pack(tuple.Tuple{buffer.Bytes()})
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		tr.Set(productKey, value)
 		return
@@ -38,8 +45,13 @@ func Put(key string, value []byte) (didPut bool) {
 	return true
 }
 
-func Get(key string) (value []byte) {
-	productKey := productSubspace.Pack(tuple.Tuple{key})
+func GetSingle(exactScope []string) (value []byte) {
+	log.Println(exactScope)
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	enc.Encode(exactScope)
+
+	productKey := productSubspace.Pack(tuple.Tuple{buffer.Bytes()})
 	ret, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		ret = tr.Get(productKey).MustGet()
 		return
@@ -50,11 +62,15 @@ func Get(key string) (value []byte) {
 	return ret.([]byte)
 }
 
-func GetRange(beginKey string, endKey string) (repeatedValue []byte) {
-	beginProductKey := productSubspace.Pack(tuple.Tuple{beginKey})
-	endKeyInclusive, errStrinc := fdb.Strinc([]byte(endKey))
+func GetAllForScope(scope []string) (repeatedValue []byte) {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	enc.Encode(scope)
+
+	beginProductKey := productSubspace.Pack(tuple.Tuple{buffer.Bytes()})
+	endKeyInclusive, errStrinc := fdb.Strinc([]byte(scope[len(scope)-1]))
 	if errStrinc != nil {
-		log.Fatal("Could not get real end key from endKey")
+		log.Fatal("Could not get real end key from scope", errStrinc)
 	}
 	endProductKey := productSubspace.Pack(tuple.Tuple{string(endKeyInclusive)})
 
@@ -75,8 +91,12 @@ func GetRange(beginKey string, endKey string) (repeatedValue []byte) {
 	return
 }
 
-func Clear(key string) (didClear bool) {
-	productKey := productSubspace.Pack(tuple.Tuple{key})
+func ClearSingle(exactScope []string) (didClear bool) {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	enc.Encode(exactScope)
+
+	productKey := productSubspace.Pack(tuple.Tuple{buffer.Bytes()})
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		tr.Clear(productKey)
 		return
