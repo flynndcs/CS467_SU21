@@ -23,46 +23,47 @@ This repo is the beginnings of a microservice architecture using gRPC, gRPC-Gate
 - run `./startService`
     - generates from protobuf files, sets logging settings and starts REST/GRPC services
 
-## Usage (Gateway, Product API)
+## Usage (Gateway, Product API) 
+- See Development below for explanations on implementation.
 - Using browser, Postman or cURL:
     - Get Status: HTTP GET to localhost:8090/api/status
         - Expected response:
             ```
             { "status": "GATEWAY STATUS: NORMAL, PRODUCT STATUS: NORMAL"}
             ```
-    - Put Product: HTTP POST to localhost:8090/api/product/name
+    - Put Product: HTTP POST to localhost:8090/api/product
         - With body:
             ```
-            {"productName": "<product name>"}
+            {"scope": [<elements>]}
             ```
+        - Expected response: // TODO decide on minimum structure for naming here
+            ```
+            {"productName": "<first element>", "productUUID": "<random UUID>"}
+            ```
+    - Get Single Product: HTTP GET to localhost:8090/api/product?scope=element&scope=element` *productName entry must have been previously created via POST and you must supply all elements as defined in scope*
         - Expected response:
             ```
-            {"productName": "<product name>", "productUUID": "<random UUID>"}
+            {"productName": "<first element>", "productUUID": "<random UUID>"}
             ```
-    - Get Product: HTTP GET to localhost:8090/api/product/name/{productName} *productName entry must have been previously created via POST*
-        - Expected response:
-            ```
-            {"productName": "<product name>", "productUUID": "<random UUID>"}
-            ```
-    - Get Product Range: HTTP GET to localhost:8090/api/product/name/{beginName}/{endName}
-        - the end of the range (endName) is inclusive - a matching value for this key will be included
+    - Get Products In Scope: HTTP GET to localhost:8090/api/product/range?scope=element&scope... *must supply a minimum of one element for scoping, will match all records that were defined with the provided elements*
         - Expected response
             - all matching values for these keys in this range
             ```
             {
                 "products": [
                     {
-                        "productName": "<first product matching beginName>",
+                        "productName": "<first element>",
                         "productUUID": "<uuid>"
                     },
                     {
-                        "productName": "<last product matching endName",
+                        "productName": "<first element",
                         "productUUID": "<uuid>"
                     }
                 ]
             }
             ```
-    - Delete Product: HTTP DELETE to localhost:8090/api/product/name/{productname} *productName entry must have been previously created via POST*
+    - Delete Product: HTTP DELETE to localhost:8090/api/product?scope=...
+        - must supply all elements for scopes as defined when created
         - Expected response (empty is success):
             ```
             {}
@@ -94,12 +95,15 @@ This repo is the beginnings of a microservice architecture using gRPC, gRPC-Gate
     - **/gateway/gatewayServer.go**
         - This file instantiates the server for the service as specified by the generated code. 
 
-- The **store** directory holds storage layer implementations
-    - Currently in progress with FoundationDB (**store/fdb**) Worth discussing and exploring alternatives.
-        - this includes a basic driver file that can be called from handlers to connect and query the database.
-            - Includes get, put, and clear methods
+- The **store** directory holds the FoundationDB implementation layer
     - FoundationDB is a key-value store meaning any create, read, update, delete operations operate on key-value pairs.
         - The current driver code uses strings for keys and encoded byte buffers for values which are deserialized from the protobuf messages and serialized back into protobuf messages upon retrieval.
+    - Product Service
+        - Each record is defined within a multi-element "scope" - each provided scope element provides more specificity about the categorization of a product when created or retrieved.
+            - Example - a product could be defined as ["Coffee", "Mexico"] to represent a coffee product from Mexico. Similarly, ["Coffee", "Guatemala"]
+            - Use the `product/range` endpoint with `?scope=Coffee` to get the records for both Mexican coffee and Guatemalan coffee
+            - Use the `product` endpoint to get a single record which requires an exact and distinct scope. `?scope=Coffee&scope=Mexico` will return only the record that has a key defined with ["Coffee", "Mexico"]
+
         - Examples
             - Put
                 - the gateway handler for PutProduct delegates to the product client's PutProduct handler which puts a value in FoundationDB using the product name as a key and a deserialized product name and random UUID for the value.
