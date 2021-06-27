@@ -40,6 +40,15 @@ message GetProductResponse{
   string productUUID = 2;
 }
 
+message GetProductRangeRequest{
+  string beginProductName = 1;
+  string endProductName = 2;
+}
+
+message GetProductRangeResponse {
+  repeated PutProductResponse products = 1;
+}
+
 message PutProductRequest{
   string productName = 1;
 }

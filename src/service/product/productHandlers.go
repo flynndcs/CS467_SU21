@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/gob"
 	"errors"
+	"io"
 	"log"
 	"os/exec"
 
@@ -24,6 +25,28 @@ func (s *ProductServer) GetProduct(ctx context.Context, in *service.GetProductRe
 	var response service.GetProductResponse
 	dec.Decode(&response)
 	return &response, nil
+}
+
+func (s *ProductServer) GetProductRange(ctx context.Context, in *service.GetProductRangeRequest) (*service.GetProductRangeResponse, error) {
+	value := fdbDriver.GetRange(in.BeginProductName, in.EndProductName)
+	log.Default().Println(value)
+	buffer := bytes.NewBuffer(value)
+	dec := gob.NewDecoder(buffer)
+
+	var products []*service.PutProductResponse //TODO generalize records into a "stored type" independent of GET/PUT/etc
+
+	//ty vm stack overflow https://stackoverflow.com/questions/45603132/im-getting-extra-data-in-buffer-error-when-trying-to-decode-a-gob-in-golang
+	var eof error
+	for eof != io.EOF {
+		var innerResponse service.PutProductResponse
+		eof = dec.Decode(&innerResponse)
+		if eof != nil {
+			continue
+		}
+		products = append(products, &innerResponse)
+	}
+
+	return &service.GetProductRangeResponse{Products: products}, nil
 }
 
 func (s *ProductServer) PutProduct(ctx context.Context, in *service.PutProductRequest) (*service.PutProductResponse, error) {

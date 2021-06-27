@@ -19,6 +19,17 @@ func (s *GatewayServer) GetProduct(ctx context.Context, in *service.GetProductRe
 	return &service.GetProductResponse{ProductName: getProductResponse.GetProductName(), ProductUUID: getProductResponse.GetProductUUID()}, nil
 }
 
+func (s *GatewayServer) GetProductRange(ctx context.Context, in *service.GetProductRangeRequest) (*service.GetProductRangeResponse, error) {
+	//use product client to call GetProduct method defined in handler
+	getProductRangeResponse, err := productClient.GetProductRange(ctx, &service.GetProductRangeRequest{BeginProductName: in.BeginProductName, EndProductName: in.EndProductName})
+	if err != nil {
+		log.Fatalln("Failed when sending a message with product client:", err)
+	}
+
+	//return a response message using the response from GetProduct
+	return &service.GetProductRangeResponse{Products: getProductRangeResponse.GetProducts()}, nil
+}
+
 func (s *GatewayServer) PutProduct(ctx context.Context, in *service.PutProductRequest) (*service.PutProductResponse, error) {
 	putProductResponse, err := productClient.PutProduct(ctx, &service.PutProductRequest{ProductName: in.GetProductName()})
 	if err != nil {

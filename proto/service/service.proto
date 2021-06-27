@@ -18,6 +18,12 @@ service Gateway {
     };
   }
 
+  rpc GetProductRange(GetProductRangeRequest) returns (GetProductRangeResponse){
+    option (google.api.http) = {
+      get: "/api/product/name/{beginProductName}/{endProductName}"
+    };
+  }
+
   rpc PutProduct(PutProductRequest) returns (PutProductResponse){
     option (google.api.http) = {
       post: "/api/product/name"
@@ -35,6 +41,7 @@ service Gateway {
 service Product{
   rpc GetProductStatus (ProductStatusRequest) returns (ProductStatusReply){}
   rpc GetProduct (GetProductRequest) returns (GetProductResponse){}
+  rpc GetProductRange (GetProductRangeRequest) returns (GetProductRangeResponse){}
   rpc PutProduct (PutProductRequest) returns (PutProductResponse){}
   rpc ClearProduct (ClearProductRequest) returns (ClearProductResponse){}
 }
