@@ -18,7 +18,6 @@ func (s *ProductServer) GetProductStatus(ctx context.Context, in *service.Produc
 }
 
 func (s *ProductServer) GetSingleProduct(ctx context.Context, in *service.GetSingleProductRequest) (*service.GetSingleProductResponse, error) {
-	log.Println(in.Scope)
 	value := fdbDriver.GetSingle(in.Scope)
 	buffer := bytes.NewBuffer(value)
 	dec := gob.NewDecoder(buffer)

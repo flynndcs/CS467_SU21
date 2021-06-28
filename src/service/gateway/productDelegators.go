@@ -10,7 +10,6 @@ import (
 //this method called by gateway REST proxy via get product endpoint, uses gRPC side ProductClient to call GetProduct
 func (s *GatewayServer) GetSingleProduct(ctx context.Context, in *service.GetSingleProductRequest) (*service.GetSingleProductResponse, error) {
 	//use product client to call GetProduct method defined in handler
-	log.Println(in.Scope)
 	GetSingleProductResponse, err := productClient.GetSingleProduct(ctx, &service.GetSingleProductRequest{Scope: in.Scope})
 	if err != nil {
 		log.Fatalln("Failed when sending a message with product client:", err)
