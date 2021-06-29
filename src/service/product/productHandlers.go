@@ -17,27 +17,27 @@ func (s *ProductServer) GetProductStatus(ctx context.Context, in *service.Produc
 	return &service.ProductStatusReply{Status: "PRODUCT STATUS: NORMAL"}, nil
 }
 
-func (s *ProductServer) GetSingleProduct(ctx context.Context, in *service.GetSingleProductRequest) (*service.GetSingleProductResponse, error) {
-	value := fdbDriver.GetSingle(in.Scope)
+func (s *ProductServer) GetSingleProduct(ctx context.Context, in *service.GetSingleProductRequest) (*service.StoredProduct, error) {
+	value := fdbDriver.GetSingle(in.Name, in.Scope)
 	buffer := bytes.NewBuffer(value)
 	dec := gob.NewDecoder(buffer)
 
-	var response service.GetSingleProductResponse
+	var response service.StoredProduct
 	dec.Decode(&response)
 	return &response, nil
 }
 
-func (s *ProductServer) GetProductsInScope(ctx context.Context, in *service.GetProductsInScopeRequest) (*service.GetProductsInScopeResponse, error) {
+func (s *ProductServer) GetProductsInScope(ctx context.Context, in *service.GetProductsInScopeRequest) (*service.StoredProducts, error) {
 	value := fdbDriver.GetAllForScope(in.Scope)
 	buffer := bytes.NewBuffer(value)
 	dec := gob.NewDecoder(buffer)
 
-	var products []*service.PutSingleProductResponse //TODO generalize records into a "stored type" independent of GET/PUT/etc
+	var products []*service.StoredProduct //TODO generalize records into a "stored type" independent of GET/PUT/etc
 
 	//ty vm stack overflow https://stackoverflow.com/questions/45603132/im-getting-extra-data-in-buffer-error-when-trying-to-decode-a-gob-in-golang
 	var eof error
 	for eof != io.EOF {
-		var innerResponse service.PutSingleProductResponse
+		var innerResponse service.StoredProduct
 		eof = dec.Decode(&innerResponse)
 		if eof != nil {
 			continue
@@ -45,10 +45,10 @@ func (s *ProductServer) GetProductsInScope(ctx context.Context, in *service.GetP
 		products = append(products, &innerResponse)
 	}
 
-	return &service.GetProductsInScopeResponse{Products: products}, nil
+	return &service.StoredProducts{Products: products}, nil
 }
 
-func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSingleProductRequest) (*service.PutSingleProductResponse, error) {
+func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSingleProductRequest) (*service.StoredProduct, error) {
 	uuidbytes, err := exec.Command("uuidgen").Output()
 	uuidbytes = bytes.Trim(uuidbytes, "\n")
 	if err != nil {
@@ -58,16 +58,16 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 	uuidString := string(uuidbytes)
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
-	enc.Encode(service.PutSingleProductResponse{ProductName: in.Scope[0], ProductUUID: uuidString})
+	enc.Encode(service.StoredProduct{Name: in.Name, Scope: in.Scope, Data: uuidString})
 
-	if !fdbDriver.Put(in.Scope, buffer.Bytes()) {
+	if !fdbDriver.Put(in.Name, in.Scope, buffer.Bytes()) {
 		return nil, errors.New(" could not put product into FDB")
 	}
-	return &service.PutSingleProductResponse{ProductName: in.Scope[0], ProductUUID: uuidString}, nil
+	return &service.StoredProduct{Name: in.Name, Data: uuidString, Scope: in.Scope}, nil
 }
 
 func (s *ProductServer) ClearSingleProduct(ctx context.Context, in *service.ClearSingleProductRequest) (*service.ClearSingleProductResponse, error) {
-	if !fdbDriver.ClearSingle(in.Scope) {
+	if !fdbDriver.ClearSingle(in.Name, in.Scope) {
 		return nil, errors.New(" could not clear product from FDB")
 	}
 	return &service.ClearSingleProductResponse{}, nil

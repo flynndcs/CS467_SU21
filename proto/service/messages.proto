@@ -32,33 +32,33 @@ message ProductStatusReply{
 }
 
 message GetSingleProductRequest{
-  repeated string scope = 1;
-}
 
-message GetSingleProductResponse{
-  string productName = 1;
-  string productUUID = 2;
+  string name = 1;
+  repeated string scope = 2;
 }
 
 message GetProductsInScopeRequest{
   repeated string scope = 1;
 }
 
-message GetProductsInScopeResponse {
-  repeated PutSingleProductResponse products = 1;
+message StoredProducts{
+  repeated StoredProduct products = 1;
 }
 
 message PutSingleProductRequest{
-  repeated string scope = 1;
+  string name = 1;
+  repeated string scope = 2;
 }
 
-message PutSingleProductResponse{
-  string productName = 1;
-  string productUUID = 2;
+message StoredProduct{
+  string name = 1;
+  repeated string scope = 2;
+  string data = 3;
 }
 
 message ClearSingleProductRequest{
-  repeated string scope = 1;
+  string name = 1;
+  repeated string scope = 2;
 }
 
 message ClearSingleProductResponse{}

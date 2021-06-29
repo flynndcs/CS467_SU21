@@ -126,7 +126,7 @@
             - Put
                 - the gateway handler for PutProduct delegates to the product client's PutProduct handler which puts a value in FoundationDB using the product name as a key and a deserialized product name and random UUID for the value.
             - Get
-                - the getProduct handler uses the product name as key to get the deserialized GetSingleProductResponse (byte representation of product name and random UUID) then serializes it into the GetSingleProductResponse format to be returned
+                - the getProduct handler uses the product name as key to get the deserialized StoredProduct (byte representation of product name and random UUID) then serializes it into the StoredProduct format to be returned
             
 
 

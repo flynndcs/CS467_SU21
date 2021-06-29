@@ -35,8 +35,8 @@ func InitFDB() {
 	productSubspace = productDir.Sub("product")
 }
 
-func Put(exactScope []string, value []byte) (didPut bool) {
-	buffer = encodeKey(exactScope)
+func Put(name string, scope []string, value []byte) (didPut bool) {
+	buffer = encodeKey(append(scope, name))
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		tr.Set(productSubspace.Pack(tuple.Tuple{buffer.Bytes()}), value)
 		return
@@ -49,8 +49,8 @@ func Put(exactScope []string, value []byte) (didPut bool) {
 	return true
 }
 
-func GetSingle(exactScope []string) (value []byte) {
-	buffer = encodeKey(exactScope)
+func GetSingle(name string, scope []string) (value []byte) {
+	buffer = encodeKey(append(scope, name))
 	ret, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		ret = tr.Get(productSubspace.Pack(tuple.Tuple{buffer.Bytes()})).MustGet()
 		return
@@ -73,7 +73,7 @@ func GetAllForScope(scope []string) (repeatedValue []byte) {
 
 	selectorRange := fdb.SelectorRange{
 		Begin: fdb.FirstGreaterOrEqual(productSubspace.Pack(tuple.Tuple{buffer.Bytes()})),
-		End:   fdb.FirstGreaterOrEqual(productSubspace.Pack(tuple.Tuple{string(endKeyInclusive)}))}
+		End:   fdb.FirstGreaterOrEqual(productSubspace.Pack(tuple.Tuple{endKeyInclusive}))}
 
 	var values []byte
 
@@ -92,8 +92,8 @@ func GetAllForScope(scope []string) (repeatedValue []byte) {
 	return values
 }
 
-func ClearSingle(exactScope []string) (didClear bool) {
-	buffer = encodeKey(exactScope)
+func ClearSingle(name string, scope []string) (didClear bool) {
+	buffer = encodeKey(append(scope, name))
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		tr.Clear(productSubspace.Pack(tuple.Tuple{buffer.Bytes()}))
 		return
