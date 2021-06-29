@@ -43,17 +43,20 @@
     - **Put Product**: HTTP POST to localhost:8090/api/product
         - With body:
             ```
-            {"scope": [<elements>]}
+            {
+                "name": "<name>",
+                "scope": [<elements>]
+            }
             ```
         - Expected response: // TODO decide on minimum structure for naming here
             ```
-            {"productName": "<first element>", "productUUID": "<random UUID>"}
+            {"name": "<name>", "scope": [<elements>], "data": "<random UUID>"}
             ```
-    - **Get Single Product**: HTTP GET to localhost:8090/api/product?scope=element&scope=element` 
-        - productName entry must have been previously created via POST and you must supply all elements as defined in scope
+    - **Get Single Product**: HTTP GET to localhost:8090/api/product?name=name&scope=element&scope=element` 
+        - productName entry must have been previously created via POST and you must supply all elements as defined in scope and the name
         - Expected response:
             ```
-            {"productName": "<first element>", "productUUID": "<random UUID>"}
+            {"nmae": "<first element>", "scope": [<elements>], "data": "<random UUID>"}
             ```
     - **Get Products In Scope**: HTTP GET to localhost:8090/api/product/range?scope=element&scope... 
         - must supply a minimum of one element for scoping, will match all records that were defined with the provided elements
@@ -63,18 +66,20 @@
             {
                 "products": [
                     {
-                        "productName": "<first element>",
-                        "productUUID": "<uuid>"
+                        "name": "<name>",
+                        "scope": [<elements>],
+                        "data": "<uuid>"
                     },
                     {
-                        "productName": "<first element",
-                        "productUUID": "<uuid>"
+                        "name": "<name>",
+                        "scope": [<elements>],
+                        "data": "<uuid>"
                     }
                 ]
             }
             ```
     - **Delete Product**: HTTP DELETE to localhost:8090/api/product?scope=...
-        - must supply all elements for scopes as defined when created
+        - must supply all elements for scope and name as defined when created
         - Expected response (empty is success):
             ```
             {}
@@ -117,10 +122,10 @@
     - FoundationDB is a key-value store meaning any create, read, update, delete operations operate on key-value pairs.
         - The current driver code uses strings for keys and encoded byte buffers for values which are deserialized from the protobuf messages and serialized back into protobuf messages upon retrieval.
     - Product Service
-        - Each record is defined within a multi-element "scope" - each provided scope element provides more specificity about the categorization of a product when created or retrieved.
-            - Example - a product could be defined as ["Coffee", "Mexico"] to represent a coffee product from Mexico. Similarly, ["Coffee", "Guatemala"]
-            - Use the `product/range` endpoint with `?scope=Coffee` to get the records for both Mexican coffee and Guatemalan coffee
-            - Use the `product` endpoint to get a single record which requires an exact and distinct scope. `?scope=Coffee&scope=Mexico` will return only the record that has a key defined with ["Coffee", "Mexico"]
+        - Each record is defined within a multi-element "scope" and with a unique "name"- each provided scope element provides more specificity about the categorization of a product when created or retrieved.
+            - Example - a product scope could be defined as ["Coffee", "Mexico"] and with name "foobar" to represent a coffee product from Mexico named "foobar". Similarly, ["Coffee", "Guatemala"] with name "baz"
+            - Use the `product/range` endpoint with `?scope=Coffee` to get the records for both Mexican coffee and Guatemalan coffee.
+            - Use the `product` endpoint to get a single record which requires an exact scope and name. `?name=foobar&scope=Coffee&scope=Mexico` will return only the record that has a scope defined with ["Coffee", "Mexico"] and name "foobar"
 
         - Examples
             - Put
