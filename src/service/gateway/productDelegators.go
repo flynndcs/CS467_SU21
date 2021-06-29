@@ -16,7 +16,7 @@ func (s *GatewayServer) GetSingleProduct(ctx context.Context, in *service.GetSin
 	}
 
 	//return a response message using the response from GetProduct
-	return &service.StoredProduct{Name: response.Name, Data: response.Data, Scope: in.Scope}, nil
+	return response, nil
 }
 
 func (s *GatewayServer) GetProductsInScope(ctx context.Context, in *service.GetProductsInScopeRequest) (*service.StoredProducts, error) {
@@ -27,7 +27,7 @@ func (s *GatewayServer) GetProductsInScope(ctx context.Context, in *service.GetP
 	}
 
 	//return a response message using the response from GetProduct
-	return &service.StoredProducts{Products: response.GetProducts()}, nil
+	return response, nil
 }
 
 func (s *GatewayServer) PutSingleProduct(ctx context.Context, in *service.PutSingleProductRequest) (*service.StoredProduct, error) {
@@ -35,7 +35,7 @@ func (s *GatewayServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 	if err != nil {
 		log.Fatalln("Failed to send", err)
 	}
-	return &service.StoredProduct{Name: response.Name, Data: response.Data, Scope: in.Scope}, nil
+	return response, nil
 }
 
 func (s *GatewayServer) ClearSingleProduct(ctx context.Context, in *service.ClearSingleProductRequest) (*service.ClearSingleProductResponse, error) {

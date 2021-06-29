@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os/exec"
+	"time"
 
 	"flynndcs.com/flynndcs/grpc-gateway/proto/service"
 	fdbDriver "flynndcs.com/flynndcs/grpc-gateway/src/store/fdb"
@@ -58,12 +59,18 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 	uuidString := string(uuidbytes)
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
-	enc.Encode(service.StoredProduct{Name: in.Name, Scope: in.Scope, Data: uuidString})
+
+	expiresValue := *in.Expires
+	if expiresValue == 0 {
+		expiresValue = time.Now().Add(24 * time.Hour).Unix()
+	}
+
+	enc.Encode(service.StoredProduct{Name: in.Name, Scope: in.Scope, Data: uuidString, Expires: expiresValue})
 
 	if !fdbDriver.Put(in.Name, in.Scope, buffer.Bytes()) {
 		return nil, errors.New(" could not put product into FDB")
 	}
-	return &service.StoredProduct{Name: in.Name, Data: uuidString, Scope: in.Scope}, nil
+	return &service.StoredProduct{Name: in.Name, Data: uuidString, Scope: in.Scope, Expires: expiresValue}, nil
 }
 
 func (s *ProductServer) ClearSingleProduct(ctx context.Context, in *service.ClearSingleProductRequest) (*service.ClearSingleProductResponse, error) {
