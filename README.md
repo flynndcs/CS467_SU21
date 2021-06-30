@@ -46,17 +46,18 @@
             {
                 "name": "<name>",
                 "scope": [<elements>]
+                "expires": "<seconds since epoch>" //optional, default is 24 hours in advance
             }
             ```
         - Expected response: // TODO decide on minimum structure for naming here
             ```
-            {"name": "<name>", "scope": [<elements>], "data": "<random UUID>"}
+            {"name": "<name>", "scope": [<elements>], "data": "<random UUID>", "expires": "<seconds since epoch>"}
             ```
     - **Get Single Product**: HTTP GET to localhost:8090/api/product?name=name&scope=element&scope=element` 
         - productName entry must have been previously created via POST and you must supply all elements as defined in scope and the name
         - Expected response:
             ```
-            {"nmae": "<first element>", "scope": [<elements>], "data": "<random UUID>"}
+            {"name": "<first element>", "scope": [<elements>], "data": "<random UUID>", "expires": "<seconds since epoch>"}
             ```
     - **Get Products In Scope**: HTTP GET to localhost:8090/api/product/range?scope=element&scope... 
         - must supply a minimum of one element for scoping, will match all records that were defined with the provided elements
@@ -69,11 +70,13 @@
                         "name": "<name>",
                         "scope": [<elements>],
                         "data": "<uuid>"
+                        "expires": "<seconds since epoch>"
                     },
                     {
                         "name": "<name>",
                         "scope": [<elements>],
                         "data": "<uuid>"
+                        "expires": "<seconds since epoch>"
                     }
                 ]
             }
@@ -126,6 +129,7 @@
             - Example - a product scope could be defined as ["Coffee", "Mexico"] and with name "foobar" to represent a coffee product from Mexico named "foobar". Similarly, ["Coffee", "Guatemala"] with name "baz"
             - Use the `product/range` endpoint with `?scope=Coffee` to get the records for both Mexican coffee and Guatemalan coffee.
             - Use the `product` endpoint to get a single record which requires an exact scope and name. `?name=foobar&scope=Coffee&scope=Mexico` will return only the record that has a scope defined with ["Coffee", "Mexico"] and name "foobar"
+            - Optionally, specify a expiration time for when this product expires - default is 24 hours from the time of creation.
 
         - Examples
             - Put

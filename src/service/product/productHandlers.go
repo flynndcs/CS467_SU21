@@ -60,9 +60,11 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
 
-	expiresValue := *in.Expires
-	if expiresValue == 0 {
+	var expiresValue int64
+	if in.Expires == nil {
 		expiresValue = time.Now().Add(24 * time.Hour).Unix()
+	} else {
+		expiresValue = *in.Expires
 	}
 
 	enc.Encode(service.StoredProduct{Name: in.Name, Scope: in.Scope, Data: uuidString, Expires: expiresValue})
