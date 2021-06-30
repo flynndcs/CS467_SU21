@@ -32,7 +32,6 @@ message ProductStatusReply{
 }
 
 message GetSingleProductRequest{
-
   string name = 1;
   repeated string scope = 2;
 }
@@ -63,4 +62,7 @@ message ClearSingleProductRequest{
   repeated string scope = 2;
 }
 
-message ClearSingleProductResponse{}
+message ClearSingleProductResponse{
+  string deletedName = 1;
+  repeated string scope = 2;
+}

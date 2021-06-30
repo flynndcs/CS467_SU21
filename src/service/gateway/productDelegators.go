@@ -39,9 +39,9 @@ func (s *GatewayServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 }
 
 func (s *GatewayServer) ClearSingleProduct(ctx context.Context, in *service.ClearSingleProductRequest) (*service.ClearSingleProductResponse, error) {
-	_, err := productClient.ClearSingleProduct(ctx, in)
+	response, err := productClient.ClearSingleProduct(ctx, in)
 	if err != nil {
 		log.Fatalln("Failed to send", err)
 	}
-	return &service.ClearSingleProductResponse{}, nil
+	return response, nil
 }

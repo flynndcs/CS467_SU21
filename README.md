@@ -81,11 +81,11 @@
                 ]
             }
             ```
-    - **Delete Product**: HTTP DELETE to localhost:8090/api/product?scope=...
+    - **Delete Product**: HTTP DELETE to localhost:8090/api/product?name=name&scope=...
         - must supply all elements for scope and name as defined when created
         - Expected response (empty is success):
             ```
-            {}
+            {"deletedName": "<name>", "scope": [<elements>]}
             ```
 
 

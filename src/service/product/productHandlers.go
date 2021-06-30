@@ -79,5 +79,5 @@ func (s *ProductServer) ClearSingleProduct(ctx context.Context, in *service.Clea
 	if !fdbDriver.ClearSingle(in.Name, in.Scope) {
 		return nil, errors.New(" could not clear product from FDB")
 	}
-	return &service.ClearSingleProductResponse{}, nil
+	return &service.ClearSingleProductResponse{Deleted: in.Name, Scope: in.Scope}, nil
 }
