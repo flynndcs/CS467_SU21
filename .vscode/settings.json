@@ -3,5 +3,8 @@
         "options": [
             "--proto_path=protobuf" 
         ]
+    },
+    "gopls": {
+        "build.buildFlags": ["-tags=tools"]
     }
 }
