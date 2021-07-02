@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"flynndcs.com/flynndcs/grpc-gateway/src/environment"
+	"CS467_SU21/src/environment"
 )
 
 func main() {

@@ -1,6 +1,6 @@
 syntax = "proto3";
 package service;
-option go_package = "flynndcs.com/flynndcs/grpc-gateway/proto/service";
+option go_package = "CS467_SU21/proto/service";
 
 import "google/api/annotations.proto";
 import "service/messages.proto";

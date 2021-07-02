@@ -1,7 +1,7 @@
 package grpcServer
 
 import (
-	"flynndcs.com/flynndcs/grpc-gateway/proto/service"
+	"CS467_SU21/proto/service"
 )
 
 type ProductServer struct {

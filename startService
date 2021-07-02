@@ -6,4 +6,5 @@ export GRPC_GO_LOG_SEVERITY_LEVEL=info
 buf beta mod update
 buf generate
 echo "Services and messages generated"
+go env
 go run . :8080 :8090

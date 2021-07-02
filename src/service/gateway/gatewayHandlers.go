@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"flynndcs.com/flynndcs/grpc-gateway/proto/service"
+	"CS467_SU21/proto/service"
 )
 
 func (s *GatewayServer) GetStatus(ctx context.Context, in *service.StatusRequest) (*service.StatusReply, error) {

@@ -1,5 +1,5 @@
 version: v1beta1
-name: buf.build/flynndcs/grpc-gateway
+name: buf.build/flynndcs/cs467-su21
 deps:
   - buf.build/beta/googleapis
 build:

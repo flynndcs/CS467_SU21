@@ -1,0 +1,22 @@
+#!/bin/bash
+
+sudo chmod -R 777 /usr/local/bin
+
+export BUFBIN="/usr/local/bin"
+export BUFVERSION="0.43.2"
+export BUFBINARY_NAME="buf"
+
+curl -sSL "https://github.com/bufbuild/buf/releases/download/v0.43.2/buf-Linux-x86_64" -o "/usr/local/bin/buf"
+
+sudo chmod +x "/usr/local/bin/buf"
+
+curl https://www.foundationdb.org/downloads/6.3.15/ubuntu/installers/foundationdb-clients_6.3.15-1_amd64.deb --output foundationdb-clients-6.3.15-1_amd64.deb
+
+curl https://www.foundationdb.org/downloads/6.3.15/ubuntu/installers/foundationdb-server_6.3.15-1_amd64.deb --output foundationdb-server-6.3.15-1_amd64.deb
+
+sudo dpkg -i foundationdb-clients-6.3.15-1_amd64.deb foundationdb-server-6.3.15-1_amd64.deb
+
+source ./startService
+
+exit
+

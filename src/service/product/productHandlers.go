@@ -10,8 +10,9 @@ import (
 	"os/exec"
 	"time"
 
-	"flynndcs.com/flynndcs/grpc-gateway/proto/service"
-	fdbDriver "flynndcs.com/flynndcs/grpc-gateway/src/store/fdb"
+	"CS467_SU21/proto/service"
+
+	fdbDriver "CS467_SU21/src/store/fdb"
 )
 
 func (s *ProductServer) GetProductStatus(ctx context.Context, in *service.ProductStatusRequest) (*service.ProductStatusReply, error) {
@@ -79,5 +80,5 @@ func (s *ProductServer) ClearSingleProduct(ctx context.Context, in *service.Clea
 	if !fdbDriver.ClearSingle(in.Name, in.Scope) {
 		return nil, errors.New(" could not clear product from FDB")
 	}
-	return &service.ClearSingleProductResponse{Deleted: in.Name, Scope: in.Scope}, nil
+	return &service.ClearSingleProductResponse{DeletedName: in.Name, Scope: in.Scope}, nil
 }

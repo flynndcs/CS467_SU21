@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"flynndcs.com/flynndcs/grpc-gateway/proto/service"
+	"CS467_SU21/proto/service"
 )
 
 //this method called by gateway REST proxy via get product endpoint, uses gRPC side ProductClient to call GetProduct
