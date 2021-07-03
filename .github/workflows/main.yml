@@ -26,4 +26,5 @@ jobs:
         run: |
           ./startService
           curl "localhost:8090/api/status"
+          sleep 5
 
