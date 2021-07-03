@@ -22,9 +22,11 @@ jobs:
       - name: Run install script
         run: |
           ./install
-      - name: Run service and BDDs
+      - name: Run service
         run: |
           ./startService
+      - name: Run BDDs
+        run: |
           curl "localhost:8090/api/status"
           sleep 5
 
