@@ -69,11 +69,20 @@ func registerHTTPProxy(grpcTarget string, httpTarget string) {
 		log.Fatalln("Failed to register gateway:", err)
 	}
 
-	gwServer := &http.Server{
-		Addr:    httpTarget,
-		Handler: gwmux,
-	}
+	mux := http.NewServeMux()
+	mux.Handle("/", Authenticate(*gwmux))
 
-	log.Println("Serving gRPC-Gateway on " + gwServer.Addr)
-	log.Fatalln(gwServer.ListenAndServe())
+	log.Println("Serving gRPC-Gateway on " + httpTarget)
+	log.Fatalln(http.ListenAndServe(httpTarget, mux))
+}
+
+func Authenticate(gwmux runtime.ServeMux) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Here")
+		if r.Header.Get("Authentication") == "" {
+			w.Write([]byte("User not authenticated"))
+		} else {
+			gwmux.ServeHTTP(w, r)
+		}
+	})
 }

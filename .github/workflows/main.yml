@@ -27,6 +27,6 @@ jobs:
           ./startService
       - name: Run BDDs
         run: |
-          curl "localhost:8090/api/status"
+          curl -u test:placeholder "localhost:8090/api/status"
           sleep 5
 

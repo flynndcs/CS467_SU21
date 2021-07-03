@@ -48,6 +48,7 @@ message PutSingleProductRequest{
   string name = 1;
   repeated string scope = 2;
   optional int64 expires = 3;
+  repeated string tags = 4;
 }
 
 message StoredProduct{
@@ -55,6 +56,7 @@ message StoredProduct{
   repeated string scope = 2;
   string data = 3;
   int64 expires = 4;
+  repeated string tags = 5;
 }
 
 message ClearSingleProductRequest{

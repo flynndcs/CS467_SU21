@@ -68,12 +68,12 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 		expiresValue = *in.Expires
 	}
 
-	enc.Encode(service.StoredProduct{Name: in.Name, Scope: in.Scope, Data: uuidString, Expires: expiresValue})
+	enc.Encode(service.StoredProduct{Name: in.Name, Scope: in.Scope, Data: uuidString, Expires: expiresValue, Tags: in.Tags})
 
 	if !fdbDriver.Put(in.Name, in.Scope, buffer.Bytes()) {
 		return nil, errors.New(" could not put product into FDB")
 	}
-	return &service.StoredProduct{Name: in.Name, Data: uuidString, Scope: in.Scope, Expires: expiresValue}, nil
+	return &service.StoredProduct{Name: in.Name, Data: uuidString, Scope: in.Scope, Expires: expiresValue, Tags: in.Tags}, nil
 }
 
 func (s *ProductServer) ClearSingleProduct(ctx context.Context, in *service.ClearSingleProductRequest) (*service.ClearSingleProductResponse, error) {
