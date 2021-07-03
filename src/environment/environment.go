@@ -78,10 +78,30 @@ func registerHTTPProxy(grpcTarget string, httpTarget string) {
 
 func Authenticate(gwmux runtime.ServeMux) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Here")
+		user, password, status := r.BasicAuth()
+		if !status {
+			log.Println("could not get basic auth credentials")
+		}
+		log.Println(r.Header.Get("Authorization"))
 		if r.Header.Get("Authorization") == "" {
 			w.Write([]byte("User not authenticated"))
 		} else {
+			if r.Method == "POST" && r.URL.Path == "/auth" {
+				if !status {
+					log.Println("Could not get basic auth")
+					return
+				}
+				if !fdbDriver.CreateUser(user, password) {
+					log.Println("Could not create user")
+					return
+				}
+				return
+			} else {
+				if !fdbDriver.CheckCredentials(user, password) {
+					log.Println("User not authenticated")
+					return
+				}
+			}
 			gwmux.ServeHTTP(w, r)
 		}
 	})
