@@ -79,7 +79,7 @@ func registerHTTPProxy(grpcTarget string, httpTarget string) {
 func Authenticate(gwmux runtime.ServeMux) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Here")
-		if r.Header.Get("Authentication") == "" {
+		if r.Header.Get("Authorization") == "" {
 			w.Write([]byte("User not authenticated"))
 		} else {
 			gwmux.ServeHTTP(w, r)
