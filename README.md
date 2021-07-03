@@ -1,5 +1,5 @@
 # gRPC Supply Chain Management
-*David Chen, Daniel Flynn, Logan Kiser*
+*David Chen, Daniel Flynn*
 
 ---
 
