@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/apple/foundationdb/bindings/go v0.0.0-20210629161921-b679ae553535
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect

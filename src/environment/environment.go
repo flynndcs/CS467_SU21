@@ -2,9 +2,13 @@ package environment
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"strings"
+	"time"
 
 	gatewaypb "CS467_SU21/proto/service"
 
@@ -14,11 +18,15 @@ import (
 
 	fdbDriver "CS467_SU21/src/store/fdb"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 )
 
+var secret []byte
+
 func RegisterAndServeEnvironment(tcpTarget string, httpTarget string) {
+	secret = []byte(os.Getenv("SCM_APP_SECRET"))
 	fdbDriver.InitFDB()
 	lis := createTCPListener(tcpTarget)
 	createGRPCServer(lis)
@@ -78,31 +86,46 @@ func registerHTTPProxy(grpcTarget string, httpTarget string) {
 
 func Authenticate(gwmux runtime.ServeMux) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user, password, status := r.BasicAuth()
-		if !status {
-			log.Println("could not get basic auth credentials")
-		}
-		log.Println(r.Header.Get("Authorization"))
-		if r.Header.Get("Authorization") == "" {
-			w.Write([]byte("User not authenticated"))
-		} else {
-			if r.Method == "POST" && r.URL.Path == "/auth" {
-				if !status {
-					log.Println("Could not get basic auth")
-					return
-				}
-				if !fdbDriver.CreateUser(user, password) {
-					log.Println("Could not create user")
-					return
-				}
-				return
-			} else {
-				if !fdbDriver.CheckCredentials(user, password) {
-					log.Println("User not authenticated")
-					return
-				}
+		user, pass, status := r.BasicAuth()
+		if r.Method == "POST" && r.URL.Path == "/createUser" {
+			if !fdbDriver.CreateUser(user, pass) || !status {
+				log.Println("User could not be created")
 			}
-			gwmux.ServeHTTP(w, r)
+			return
+		} else if r.URL.Path == "/getToken" {
+
+			if !fdbDriver.CheckCredentials(user, pass) {
+				log.Println("Unauthorized")
+				return
+			}
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+				"sub": user,
+				"exp": time.Now().Add(1 * time.Hour).Unix(),
+			})
+			tokenString, tokenErr := token.SignedString(secret)
+			if tokenErr != nil {
+				log.Println("error generating jwt: ", tokenErr)
+				return
+			}
+			w.Write([]byte(tokenString))
+			return
+		} else {
+			tokenString := r.Header.Get("Authorization")
+			tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+			parsedToken, parseErr := jwt.Parse(tokenString, func(jwtToken *jwt.Token) (interface{}, error) {
+				if _, ok := jwtToken.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("unexpected signing method %v", jwtToken.Header["alg"])
+				}
+				return secret, nil
+			})
+			if parseErr != nil {
+				log.Println("Could not parse JWT: ", parseErr)
+				return
+			}
+			if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
+				log.Println("User: ", claims["sub"])
+			}
 		}
+		gwmux.ServeHTTP(w, r)
 	})
 }
