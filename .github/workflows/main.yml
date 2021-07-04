@@ -29,5 +29,5 @@ jobs:
         run: |
           ./bddScript
         env:
-          SCM_APP_SECRET=${{secrets.GITHUB_TOKEN}}
+          SCM_APP_SECRET: ${{secrets.GITHUB_TOKEN}}
 
