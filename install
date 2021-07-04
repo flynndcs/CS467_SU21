@@ -26,9 +26,9 @@ sudo dpkg -i foundationdb-clients-6.3.15-1_amd64.deb foundationdb-server-6.3.15-
 
 # sudo rpm -Uvh foundationdb-clients-6.3.15-1.el7.x86_64.rpm foundationdb-server-6.3.15-1.el7.x86_64.rpm
 
-sudo go mod tidy
+go mod tidy
 
-sudo go install \
+go install \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
     google.golang.org/protobuf/cmd/protoc-gen-go \
