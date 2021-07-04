@@ -10,18 +10,28 @@ curl -sSL "https://github.com/bufbuild/buf/releases/download/v0.43.2/buf-Linux-x
 
 sudo chmod +x "/usr/local/bin/buf"
 
+# Ubuntu installation
+
 curl https://www.foundationdb.org/downloads/6.3.15/ubuntu/installers/foundationdb-clients_6.3.15-1_amd64.deb --output foundationdb-clients-6.3.15-1_amd64.deb
 
 curl https://www.foundationdb.org/downloads/6.3.15/ubuntu/installers/foundationdb-server_6.3.15-1_amd64.deb --output foundationdb-server-6.3.15-1_amd64.deb
 
 sudo dpkg -i foundationdb-clients-6.3.15-1_amd64.deb foundationdb-server-6.3.15-1_amd64.deb
 
-go mod tidy
+# Redhat installation
 
-go install \
+# curl https://www.foundationdb.org/downloads/6.3.15/rhel7/installers/foundationdb-clients-6.3.15-1.el7.x86_64.rpm --output foundationdb-clients-6.3.15-1.el7.x86_64.rpm
+
+# curl https://www.foundationdb.org/downloads/6.3.15/rhel7/installers/foundationdb-server-6.3.15-1.el7.x86_64.rpm --output foundationdb-server-6.3.15-1.el7.x86_64.rpm
+
+# sudo rpm -Uvh foundationdb-clients-6.3.15-1.el7.x86_64.rpm foundationdb-server-6.3.15-1.el7.x86_64.rpm
+
+sudo go mod tidy
+
+sudo go install \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
     google.golang.org/protobuf/cmd/protoc-gen-go \
     google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
-export PATH=$PATH:$(go env GOPATH)/bin
+sudo export PATH=$PATH:$(go env GOPATH)/bin

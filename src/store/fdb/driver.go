@@ -27,7 +27,7 @@ func encodeKey(exactScope []string) (returnBuffer bytes.Buffer) {
 }
 
 func InitFDB() {
-	log.Default().Println("initializing FDB")
+	log.Println("initializing FDB")
 	fdb.MustAPIVersion(630)
 	db = fdb.MustOpenDefault()
 	productDir, err := directory.CreateOrOpen(db, []string{"product"}, nil)
