@@ -27,6 +27,7 @@ jobs:
           ./startService
       - name: Run BDDs
         run: |
-          curl -u test:placeholder "localhost:8090/api/status"
-          sleep 5
+          ./bddScript
+        env:
+          SCM_APP_SECRET=${{secrets.GITHUB_TOKEN}}
 
