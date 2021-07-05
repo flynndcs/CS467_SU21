@@ -6,20 +6,12 @@ export GRPC_GO_LOG_SEVERITY_LEVEL=info
 buf beta mod update
 buf generate
 
-echo "Services and messages generated:"
+echo "Services and messages generated, contents:"
 ls -l proto/service
-echo "folder contents:"
-ls 
-
-sudo chown $USER example.crt
-sudo chmod +x example.crt
-sudo chown $USER example.key
-sudo chmod +x example.key
 
 go mod tidy
 
-go env
 killall CS467_SU21
 go run . :8080 :8090 &
 
-sleep 10
+sleep 5

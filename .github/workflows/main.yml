@@ -19,17 +19,6 @@ jobs:
         with:
           go-version: 1.16.5
 
-      - name: Generate certificates for next step
-        uses: kofemann/action-create-certificate@v0.0.4
-        with:
-          hostcert: 'example.crt'
-          hostkey:  'example.key'
-          cachain:  'ca-chain.pem'
-
-      - name: Use generated certificates
-        run: |
-            openssl x509 -in example.crt -noout -text
-
       - name: Run install script
         run: |
           ./install

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-curl --key ./example.key --cert ./example.crt -X POST -u testuser:testpass "https://localhost:8090/createUser" 
+curl -X POST -u testuser:testpass "https://localhost:8090/createUser" 
 sleep 5
-token=$(curl -u --key ./example.key --cert ./example.crt testuser:testpass "https://localhost:8090/getToken")
+token=$(curl -u testuser:testpass "https://localhost:8090/getToken")
 sleep 5
-curl -H "Authorization: Bearer $token" --key ./example.key --cert ./example.crt "https://localhost:8090/api/status"
+curl -H "Authorization: Bearer $token" "https://localhost:8090/api/status"
