@@ -11,6 +11,9 @@ ls -l proto/service
 echo "folder contents:"
 ls 
 
+sudo chmod +x example.crt
+sudo chmod +x example.key
+
 go mod tidy
 
 go env
