@@ -81,7 +81,7 @@ func registerHTTPProxy(grpcTarget string, httpTarget string) {
 	mux.Handle("/", Authenticate(*gwmux))
 
 	log.Println("Serving gRPC-Gateway on " + httpTarget)
-	log.Fatalln(http.ListenAndServe(httpTarget, mux))
+	log.Fatalln(http.ListenAndServeTLS(httpTarget, "example.crt", "example.key", mux))
 }
 
 func Authenticate(gwmux runtime.ServeMux) http.Handler {

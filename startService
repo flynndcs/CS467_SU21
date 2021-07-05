@@ -9,6 +9,8 @@ buf generate
 echo "Services and messages generated:"
 ls -l proto/service
 
+go mod tidy
+
 go env
 killall CS467_SU21
 go run . :8080 :8090 &
