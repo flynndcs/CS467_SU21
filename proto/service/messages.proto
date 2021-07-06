@@ -2,42 +2,32 @@ syntax = "proto3";
 package service;
 option go_package = "CS467_SU21/proto/service";
 
-/*
-  gRPC MESSAGE DEFINITIONS 
-*/
+/* gRPC MESSAGE DEFINITIONS */
 
-/* 
-  GATEWAY SERVICE
-*/
+/* GATEWAY SERVICE */
 
-// The status request message (REST request: GET /api/status)
 message StatusRequest{
 }
 
-// The response message containing the status (response to StatusRequest)
 message StatusReply {
   string status = 1;
 }
 
-/* 
-  PRODUCT SERVICE
-*/
+/* PRODUCT SERVICE */
 
-// The status request message (gRPC)
 message ProductStatusRequest{}
 
-// The response to the product status request
 message ProductStatusReply{
   string status = 1;
 }
 
 message GetSingleProductRequest{
   string name = 1;
-  repeated string scope = 2;
+  repeated string categorySequence = 2;
 }
 
-message GetProductsInScopeRequest{
-  repeated string scope = 1;
+message GetProductsInCategorySequenceRequest{
+  repeated string categorySequence = 1;
 }
 
 message StoredProducts{
@@ -46,25 +36,34 @@ message StoredProducts{
 
 message PutSingleProductRequest{
   string name = 1;
-  repeated string scope = 2;
+  repeated string categorySequence = 2;
   optional int64 expires = 3;
   repeated string tags = 4;
+  string origin = 5;
+  repeated string intermediateDestinations = 6;
+  repeated string endDestinations= 7;
+  int64 totalQuantity = 8;
 }
 
 message StoredProduct{
   string name = 1;
-  repeated string scope = 2;
-  string data = 3;
-  int64 expires = 4;
-  repeated string tags = 5;
+  repeated string categorySequence = 2;
+  int64 expires = 3;
+  repeated string tags = 4;
+  string origin = 5;
+  repeated string intermediateDestinations = 6;
+  repeated string endDestinations= 7;
+  map<string, int64> quantityByLocation = 8;
+  int64 totalQuantity = 9;
+  int64 quantityInTransit = 10;
 }
 
 message ClearSingleProductRequest{
   string name = 1;
-  repeated string scope = 2;
+  repeated string categorySequence = 2;
 }
 
 message ClearSingleProductResponse{
   string deletedName = 1;
-  repeated string scope = 2;
+  repeated string categorySequence = 2;
 }
