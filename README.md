@@ -43,7 +43,7 @@
             ```
             {
                 "name": "<name>",
-                "scope": [<elements>]
+                "categorySequence": [<elements>]
                 "expires": "<seconds since epoch>" //optional, default is 24 hours in advance
                 "tags": [<tags>] // optional
             }
@@ -52,25 +52,25 @@
             ```
             {
                 "name": "<name>", 
-                "scope": [<elements>], 
+                "categorySequence": [<elements>], 
                 "data": "<random UUID>", 
                 "expires": "<seconds since epoch>", 
                 "tags": [<tags>]
             }
             ```
-    - **Get Single Product**: HTTP GET to localhost:8090/api/product?name=name&scope=element&scope=element` 
-        - productName entry must have been previously created via POST and you must supply all elements as defined in scope and the name
+    - **Get Single Product**: HTTP GET to localhost:8090/api/product?name=name&categorySequence=element&categorySequence=element` 
+        - productName entry must have been previously created via POST and you must supply all elements as defined in categorySequence and the name
         - Expected response:
             ```
             {
                 "name": "<first element>", 
-                "scope": [<elements>], 
+                "categorySequence": [<elements>], 
                 "data": "<random UUID>", 
                 "expires": "<seconds since epoch>",
                 "tags": [<tags>]
             }
             ```
-    - **Get Products In Scope**: HTTP GET to localhost:8090/api/product/range?scope=element&scope... 
+    - **Get Products In categorySequence**: HTTP GET to localhost:8090/api/product/range?categorySequence=element&categorySequence... 
         - must supply a minimum of one element for scoping, will match all records that were defined with the provided elements
         - Expected response
             - all matching values for these keys in this range
@@ -79,7 +79,7 @@
                 "products": [
                     {
                         "name": "<name>",
-                        "scope": [<elements>],
+                        "categorySequence": [<elements>],
                         "data": "<uuid>",
                         "expires": "<seconds since epoch>",
                         "tags": [<tags>]
@@ -87,7 +87,7 @@
                     },
                     {
                         "name": "<name>",
-                        "scope": [<elements>],
+                        "categorySequence": [<elements>],
                         "data": "<uuid>",
                         "expires": "<seconds since epoch>",
                         "tags": [<tags>]
@@ -95,11 +95,11 @@
                 ]
             }
             ```
-    - **Delete Product**: HTTP DELETE to localhost:8090/api/product?name=name&scope=...
-        - must supply all elements for scope and name as defined when created
+    - **Delete Product**: HTTP DELETE to localhost:8090/api/product?name=name&categorySequence=...
+        - must supply all elements for categorySequence and name as defined when created
         - Expected response (empty is success):
             ```
-            {"deletedName": "<name>", "scope": [<elements>]}
+            {"deletedName": "<name>", "categorySequence": [<elements>]}
             ```
 
 

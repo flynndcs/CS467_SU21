@@ -33,10 +33,10 @@
     - FoundationDB is a key-value store meaning any create, read, update, delete operations operate on key-value pairs.
         - The current driver code uses strings for keys and encoded byte buffers for values which are deserialized from the protobuf messages and serialized back into protobuf messages upon retrieval.
     - Product Service
-        - Each record is defined within a multi-element "scope" and with a unique "name"- each provided scope element provides more specificity about the categorization of a product when created or retrieved.
-            - Example - a product scope could be defined as ["Coffee", "Mexico"] and with name "foobar" to represent a coffee product from Mexico named "foobar". Similarly, ["Coffee", "Guatemala"] with name "baz"
-            - Use the `product/range` endpoint with `?scope=Coffee` to get the records for both Mexican coffee and Guatemalan coffee.
-            - Use the `product` endpoint to get a single record which requires an exact scope and name. `?name=foobar&scope=Coffee&scope=Mexico` will return only the record that has a scope defined with ["Coffee", "Mexico"] and name "foobar"
+        - Each record is defined within a multi-element "categorySequence" and with a unique "name"- each provided categorySequence element provides more specificity about the categorization of a product when created or retrieved.
+            - Example - a product categorySequence could be defined as ["Coffee", "Mexico"] and with name "foobar" to represent a coffee product from Mexico named "foobar". Similarly, ["Coffee", "Guatemala"] with name "baz"
+            - Use the `product/range` endpoint with `?categorySequence=Coffee` to get the records for both Mexican coffee and Guatemalan coffee.
+            - Use the `product` endpoint to get a single record which requires an exact categorySequence and name. `?name=foobar&categorySequence=Coffee&categorySequence=Mexico` will return only the record that has a categorySequence defined with ["Coffee", "Mexico"] and name "foobar"
             - Optionally, specify a expiration time for when this product expires - default is 24 hours from the time of creation.
 
         - Examples

@@ -19,9 +19,9 @@ func (s *GatewayServer) GetSingleProduct(ctx context.Context, in *service.GetSin
 	return response, nil
 }
 
-func (s *GatewayServer) GetProductsInScope(ctx context.Context, in *service.GetProductsInScopeRequest) (*service.StoredProducts, error) {
+func (s *GatewayServer) GetProductsInCategorySequence(ctx context.Context, in *service.GetProductsInCategorySequenceRequest) (*service.StoredProducts, error) {
 	//use product client to call GetProduct method defined in handler
-	response, err := productClient.GetProductsInScope(ctx, in)
+	response, err := productClient.GetProductsInCategorySequence(ctx, in)
 	if err != nil {
 		log.Fatalln("Failed when sending a message with product client:", err)
 	}
