@@ -1,7 +1,8 @@
 #!/bin/bash
-
-curl -X POST -u testuser:testpass "localhost:8090/createUser" 
 sleep 5
-token=$(curl -u testuser:testpass "localhost:8090/getToken")
-sleep 5
+curl "localhost:8090/createAccount" -d '{"accountName": "test", "users": []}'
+curl -X POST -u testuser:testpass "localhost:8090/createUser" -d '{"accountName": "test"}'
+sleep 1
+token=$(curl -X POST -u testuser:testpass "localhost:8090/getToken" -d '{"accountName": "test"}')
+sleep 1
 curl -H "Authorization: Bearer $token" "localhost:8090/api/status"

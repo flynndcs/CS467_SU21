@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	userSubspace    subspace.Subspace
+	accountSubspace subspace.Subspace
 	productSubspace subspace.Subspace
 	db              fdb.Database
 	buffer          bytes.Buffer
@@ -36,20 +36,36 @@ func InitFDB() {
 	}
 	productSubspace = productDir.Sub("product")
 
-	userDir, err := directory.CreateOrOpen(db, []string{"user"}, nil)
+	accountDir, err := directory.CreateOrOpen(db, []string{"account"}, nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	userSubspace = userDir.Sub("user")
+	accountSubspace = accountDir.Sub("account")
 }
 
-func CreateUser(username string, password string) (didCreate bool) {
+func CreateAccount(accountName string, userArray []byte) (didCreate bool) {
+	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
+		tr.Set(accountSubspace.Pack(tuple.Tuple{accountName}), userArray)
+		return
+	})
+	if err != nil {
+		log.Println("Could not create account: ", err)
+		return false
+	}
+	return true
+}
+
+func CreateUser(accountName string, username string, password string) (didCreate bool) {
 	hash, hashError := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if hashError != nil {
 		log.Println("could not generate hash: ", hashError)
 	}
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		tr.Set(userSubspace.Pack(tuple.Tuple{username, password}), hash)
+		userArray := tr.Get(accountSubspace.Pack(tuple.Tuple{accountName})).MustGet()
+		userArray = append(userArray, []byte(username)...)
+
+		tr.Set(accountSubspace.Pack(tuple.Tuple{accountName}), userArray)
+		tr.Set(accountSubspace.Pack(tuple.Tuple{accountName, username}), hash)
 		return
 	})
 	if err != nil {
@@ -58,10 +74,9 @@ func CreateUser(username string, password string) (didCreate bool) {
 	return true
 }
 
-func CheckCredentials(username string, password string) (isValid bool) {
+func CheckCredentials(accountName string, username string, password string) (isValid bool) {
 	ret, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		ret = tr.Get(userSubspace.Pack(tuple.Tuple{username, password})).MustGet()
-		log.Println(ret)
+		ret = tr.Get(accountSubspace.Pack(tuple.Tuple{accountName, username})).MustGet()
 		if bcrypt.CompareHashAndPassword(ret.([]byte), []byte(password)) != nil {
 			log.Println("Password did not match")
 			return false, nil
