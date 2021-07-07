@@ -2,13 +2,11 @@ package fdb
 
 import (
 	"bytes"
-	"encoding/gob"
 	"log"
 
 	"github.com/apple/foundationdb/bindings/go/src/fdb"
 	"github.com/apple/foundationdb/bindings/go/src/fdb/directory"
 	"github.com/apple/foundationdb/bindings/go/src/fdb/subspace"
-	"github.com/apple/foundationdb/bindings/go/src/fdb/tuple"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,13 +15,14 @@ var (
 	productSubspace subspace.Subspace
 	db              fdb.Database
 	buffer          bytes.Buffer
-	enc             *gob.Encoder
 )
 
-func encodeKey(exactcategorySequence []string) (returnBuffer bytes.Buffer) {
-	enc = gob.NewEncoder(&buffer)
-	enc.Encode(exactcategorySequence)
-	return buffer
+func encodeCategorySequence(categorySequence []string) (returnBytes []byte) {
+	var bytes []byte
+	for _, v := range categorySequence {
+		bytes = append(bytes, []byte(v)...)
+	}
+	return bytes
 }
 
 func InitFDB() {
@@ -44,8 +43,12 @@ func InitFDB() {
 }
 
 func CreateAccount(accountName string, userArray []byte) (didCreate bool) {
+	var keyBytes []byte
+	keyBytes = append(keyBytes, accountSubspace.Bytes()...)
+	keyBytes = append(keyBytes, []byte(accountName)...)
+
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		tr.Set(accountSubspace.Pack(tuple.Tuple{accountName}), userArray)
+		tr.Set(fdb.Key(keyBytes), userArray)
 		return
 	})
 	if err != nil {
@@ -60,12 +63,17 @@ func CreateUser(accountName string, username string, password string) (didCreate
 	if hashError != nil {
 		log.Println("could not generate hash: ", hashError)
 	}
+	var keyBytes []byte
+	keyBytes = append(keyBytes, accountSubspace.Bytes()...)
+	keyBytes = append(keyBytes, []byte(accountName)...)
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		userArray := tr.Get(accountSubspace.Pack(tuple.Tuple{accountName})).MustGet()
+		userArray := tr.Get(fdb.Key(keyBytes)).MustGet()
 		userArray = append(userArray, []byte(username)...)
 
-		tr.Set(accountSubspace.Pack(tuple.Tuple{accountName}), userArray)
-		tr.Set(accountSubspace.Pack(tuple.Tuple{accountName, username}), hash)
+		tr.Set(fdb.Key(keyBytes), userArray)
+
+		keyBytes = append(keyBytes, []byte(username)...)
+		tr.Set(fdb.Key(keyBytes), hash)
 		return
 	})
 	if err != nil {
@@ -75,8 +83,13 @@ func CreateUser(accountName string, username string, password string) (didCreate
 }
 
 func CheckCredentials(accountName string, username string, password string) (isValid bool) {
+	var keyBytes []byte
+	keyBytes = append(keyBytes, accountSubspace.Bytes()...)
+	keyBytes = append(keyBytes, []byte(accountName)...)
+	keyBytes = append(keyBytes, []byte(username)...)
+
 	ret, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		ret = tr.Get(accountSubspace.Pack(tuple.Tuple{accountName, username})).MustGet()
+		ret = tr.Get(fdb.Key(keyBytes)).MustGet()
 		if bcrypt.CompareHashAndPassword(ret.([]byte), []byte(password)) != nil {
 			log.Println("Password did not match")
 			return false, nil
@@ -90,9 +103,12 @@ func CheckCredentials(accountName string, username string, password string) (isV
 }
 
 func Put(name string, categorySequence []string, value []byte) (didPut bool) {
-	buffer = encodeKey(append(categorySequence, name))
+	var keyBytes []byte
+	keyBytes = append(keyBytes, productSubspace.Bytes()...)
+	keyBytes = append(keyBytes, encodeCategorySequence(categorySequence)...)
+	keyBytes = append(keyBytes, name...)
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		tr.Set(productSubspace.Pack(tuple.Tuple{buffer.Bytes()}), value)
+		tr.Set(fdb.Key(keyBytes), value)
 		return
 	})
 	if err != nil {
@@ -104,9 +120,13 @@ func Put(name string, categorySequence []string, value []byte) (didPut bool) {
 }
 
 func GetSingle(name string, categorySequence []string) (value []byte) {
-	buffer = encodeKey(append(categorySequence, name))
+	var keyBytes []byte
+	keyBytes = append(keyBytes, productSubspace.Bytes()...)
+	keyBytes = append(keyBytes, encodeCategorySequence(categorySequence)...)
+	keyBytes = append(keyBytes, []byte(name)...)
+
 	ret, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		ret = tr.Get(productSubspace.Pack(tuple.Tuple{buffer.Bytes()})).MustGet()
+		ret = tr.Get(fdb.Key(keyBytes)).MustGet()
 		return
 	})
 	if err != nil {
@@ -118,21 +138,20 @@ func GetSingle(name string, categorySequence []string) (value []byte) {
 }
 
 func GetAllForCategorySequence(categorySequence []string) (repeatedValue []byte) {
-	buffer = encodeKey(categorySequence)
-	endKeyInclusive, errStrinc := fdb.Strinc([]byte(categorySequence[len(categorySequence)-1]))
-	if errStrinc != nil {
-		buffer.Reset()
-		log.Fatal("Could not get real end key from categorySequence", errStrinc)
-	}
+	var keyBytes []byte
+	keyBytes = append(keyBytes, productSubspace.Bytes()...)
+	keyBytes = append(keyBytes, encodeCategorySequence(categorySequence)...)
 
-	selectorRange := fdb.SelectorRange{
-		Begin: fdb.FirstGreaterOrEqual(productSubspace.Pack(tuple.Tuple{buffer.Bytes()})),
-		End:   fdb.FirstGreaterOrEqual(productSubspace.Pack(tuple.Tuple{endKeyInclusive}))}
+	prefixRange, prefixError := fdb.PrefixRange(keyBytes)
+
+	if prefixError != nil {
+		log.Println("Could not get prefix for key: ", prefixError)
+	}
 
 	var values []byte
 
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		retIter := tr.GetRange(selectorRange, fdb.RangeOptions{}).GetSliceOrPanic()
+		retIter := tr.GetRange(prefixRange, fdb.RangeOptions{}).GetSliceOrPanic()
 		for _, kv := range retIter {
 			values = append(values, kv.Value...)
 		}
@@ -147,9 +166,12 @@ func GetAllForCategorySequence(categorySequence []string) (repeatedValue []byte)
 }
 
 func ClearSingle(name string, categorySequence []string) (didClear bool) {
-	buffer = encodeKey(append(categorySequence, name))
+	var keyBytes []byte
+	keyBytes = append(keyBytes, productSubspace.Bytes()...)
+	keyBytes = append(keyBytes, encodeCategorySequence(categorySequence)...)
+	keyBytes = append(keyBytes, []byte(name)...)
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		tr.Clear(productSubspace.Pack(tuple.Tuple{buffer.Bytes()}))
+		tr.Clear(fdb.Key(keyBytes))
 		return
 	})
 	if err != nil {
