@@ -35,7 +35,9 @@ func Authenticate(gwmux runtime.ServeMux) http.Handler {
 			getToken(r, user, pass, w)
 			return
 		} else {
-			validate(r)
+			if !validate(r) {
+				return
+			}
 		}
 		gwmux.ServeHTTP(w, r)
 	})
@@ -99,7 +101,7 @@ func getToken(r *http.Request, user string, pass string, w http.ResponseWriter) 
 	w.Write([]byte(tokenString))
 }
 
-func validate(r *http.Request) {
+func validate(r *http.Request) (validated bool) {
 	tokenString := r.Header.Get("Authorization")
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 	parsedToken, parseErr := jwt.Parse(tokenString, func(jwtToken *jwt.Token) (interface{}, error) {
@@ -110,9 +112,10 @@ func validate(r *http.Request) {
 	})
 	if parseErr != nil {
 		log.Println("Could not parse JWT: ", parseErr)
-		return
+		return false
 	}
-	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
-		log.Println("User: ", claims["sub"])
+	if _, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
+		return true
 	}
+	return false
 }

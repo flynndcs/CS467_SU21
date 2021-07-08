@@ -1,9 +1,45 @@
 #!/bin/bash
 sleep 5
-curl "localhost:8090/createAccount" -d '{"accountName": "test", "users": []}'
-curl -X POST -u testuser:testpass "localhost:8090/createUser" -d '{"accountName": "test"}'
+curl -s "localhost:8090/createAccount" -d '{"accountName": "test", "users": []}'
+curl -s -X POST -u testuser:testpass "localhost:8090/createUser" -d '{"accountName": "test"}'
+token=$(curl -s -X POST -u testuser:testpass "localhost:8090/getToken" -d '{"accountName": "test"}')
 sleep 1
-token=$(curl -X POST -u testuser:testpass "localhost:8090/getToken" -d '{"accountName": "test"}')
-echo $token
+
+echo "Scenario: User can get the status of the service"
+curl -s -H "Authorization: Bearer $token" "localhost:8090/api/status" | json_pp
+
 sleep 1
-curl -H "Authorization: Bearer $token" "localhost:8090/api/status"
+
+echo "Scenario: User can create a product with a name, categoy sequence and other data."    
+curl -s -H "Authorization: Bearer $token" -X POST "localhost:8090/api/product" \
+    -d '{"name": "foobarCoffee", "categorySequence": ["All", "Coffee"],
+    "tags": ["Food", "Beverage", "Small"], "origin": "CoffeeFarm1", "intermediateDestinations": ["Distributor1", "Distributor2"],
+    "endDestinations": ["Wal-Mart_Warehouse1", "AmazonFCenter1"], "totalQuantity": 1000}' | json_pp
+
+sleep 1
+
+echo "Scenario: User can create a product with a similar but less specific category sequence."
+curl -s -H "Authorization: Bearer $token" -X POST "localhost:8090/api/product" \
+    -d '{"name": "bazGeneric", "categorySequence": ["All"],
+    "tags": ["Food", "Beverage", "Small"], "origin": "Generic1", "intermediateDestinations": ["Distributor1", "Distributor2"],
+    "endDestinations": ["Wal-Mart_Warehouse1", "AmazonFCenter1"], "totalQuantity": 1000}' | json_pp
+
+sleep 1
+
+echo "Scenario: User can retrieve a product using its name and exact category sequence."
+curl -s -H "Authorization: Bearer $token" "localhost:8090/api/product?name=foobarCoffee&categorySequence=All&categorySequence=Coffee" | json_pp
+
+sleep 1
+
+echo "Scenario: User can retrieve all products defined within a given category sequence."
+curl -s -H "Authorization: Bearer $token" "localhost:8090/api/product/range?categorySequence=All" | json_pp
+
+sleep 1
+
+echo "Scenario: User can delete a product by providing its name and full category sequence."
+curl -s -H "Authorization: Bearer $token" -X DELETE "localhost:8090/api/product?name=bazGeneric&categorySequence=All" | json_pp
+
+sleep 1
+
+echo "Scenario: User can view the list of products which now has one product removed."
+curl -s -H "Authorization: Bearer $token" "localhost:8090/api/product/range?categorySequence=All" | json_pp

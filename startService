@@ -13,3 +13,5 @@ go mod tidy
 
 killall CS467_SU21
 go run . :8080 :8090 &
+
+sleep 5
