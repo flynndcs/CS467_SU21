@@ -10,14 +10,25 @@ curl -s -H "Authorization: Bearer $token" "localhost:8090/api/status" | json_pp
 
 sleep 1
 
-echo "Scenario: User can create a product with a name, categoy sequence and other data."    
+echo "------------------------------------------------------------------------------------------------"
+echo "Scenario: User can create a parent product with a name, categoy sequence and other data."    
 curl -s -H "Authorization: Bearer $token" -X POST "localhost:8090/api/product" \
-    -d '{"name": "foobarCoffee", "categorySequence": ["All", "Coffee"],
+    -d '{"name": "Green Coffee Beans", "categorySequence": ["All", "Coffee"],
     "tags": ["Food", "Beverage", "Small"], "origin": "CoffeeFarm1", "intermediateDestinations": ["Distributor1", "Distributor2"],
-    "endDestinations": ["Wal-Mart_Warehouse1", "AmazonFCenter1"], "totalQuantity": 1000}' | json_pp
+    "endDestinations": ["Wal-Mart_Warehouse1", "AmazonFCenter1"], "totalQuantity": 3000}' | json_pp
 
 sleep 1
 
+echo "------------------------------------------------------------------------------------------------"
+echo "Scenario: User can create a child product with a name, categoy sequence and other data."    
+curl -s -H "Authorization: Bearer $token" -X POST "localhost:8090/api/product" \
+    -d '{"name": "Flavored Coffee Beans", "categorySequence": ["All", "Coffee"],
+    "tags": ["Food", "Beverage", "Small"], "origin": "CoffeeFarm1", "intermediateDestinations": ["Distributor1", "Distributor2"],
+    "endDestinations": ["Wal-Mart_Warehouse1", "AmazonFCenter1"], "totalQuantity": 5000}' | json_pp
+
+sleep 1
+
+echo "------------------------------------------------------------------------------------------------"
 echo "Scenario: User can create a product with a similar but less specific category sequence."
 curl -s -H "Authorization: Bearer $token" -X POST "localhost:8090/api/product" \
     -d '{"name": "bazGeneric", "categorySequence": ["All"],
@@ -26,20 +37,34 @@ curl -s -H "Authorization: Bearer $token" -X POST "localhost:8090/api/product" \
 
 sleep 1
 
+echo "------------------------------------------------------------------------------------------------"
 echo "Scenario: User can retrieve a product using its name and exact category sequence."
 curl -s -H "Authorization: Bearer $token" "localhost:8090/api/product?name=foobarCoffee&categorySequence=All&categorySequence=Coffee" | json_pp
 
 sleep 1
 
+echo "------------------------------------------------------------------------------------------------"
 echo "Scenario: User can retrieve all products defined within a given category sequence."
 curl -s -H "Authorization: Bearer $token" "localhost:8090/api/product/range?categorySequence=All" | json_pp
 
 sleep 1
 
+echo "------------------------------------------------------------------------------------------------"
 echo "Scenario: User can delete a product by providing its name and full category sequence."
 curl -s -H "Authorization: Bearer $token" -X DELETE "localhost:8090/api/product?name=bazGeneric&categorySequence=All" | json_pp
 
 sleep 1
 
+echo "------------------------------------------------------------------------------------------------"
 echo "Scenario: User can view the list of products which now has one product removed."
 curl -s -H "Authorization: Bearer $token" "localhost:8090/api/product/range?categorySequence=All" | json_pp
+
+sleep 1
+
+echo "------------------------------------------------------------------------------------------------"
+echo "Scenario: User can create a product with parent and child product names."
+curl -s -H "Authorization: Bearer $token" -X POST "localhost:8090/api/product" \
+    -d '{"name": "Roasted Coffee Beans", "categorySequence": ["All", "Coffee"], 
+    "tags": ["Child", "Parent"], "origin": "GenericOrigin", "intermediateDestinations": ["Int1", "Int2"],
+    "endDestination": ["End1", "End2"], "totalQuantity": 2000, 
+    "parentProducts": ["Green Coffee Beans"], "childProducts": ["Flavored Coffee Beans"]}' | json_pp
