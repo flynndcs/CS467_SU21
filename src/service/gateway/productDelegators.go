@@ -7,26 +7,21 @@ import (
 	"CS467_SU21/proto/service"
 )
 
-//this method called by gateway REST proxy via get product endpoint, uses gRPC side ProductClient to call GetProduct
 func (s *GatewayServer) GetSingleProduct(ctx context.Context, in *service.GetSingleProductRequest) (*service.StoredProduct, error) {
-	//use product client to call GetProduct method defined in handler
 	response, err := productClient.GetSingleProduct(ctx, in)
 	if err != nil {
 		log.Fatalln("Failed when sending a message with product client:", err)
 	}
 
-	//return a response message using the response from GetProduct
 	return response, nil
 }
 
 func (s *GatewayServer) GetProductsInCategorySequence(ctx context.Context, in *service.GetProductsInCategorySequenceRequest) (*service.StoredProducts, error) {
-	//use product client to call GetProduct method defined in handler
 	response, err := productClient.GetProductsInCategorySequence(ctx, in)
 	if err != nil {
 		log.Fatalln("Failed when sending a message with product client:", err)
 	}
 
-	//return a response message using the response from GetProduct
 	return response, nil
 }
 

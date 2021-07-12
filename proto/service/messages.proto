@@ -43,6 +43,8 @@ message PutSingleProductRequest{
   repeated string intermediateDestinations = 6;
   repeated string endDestinations= 7;
   int64 totalQuantity = 8;
+  repeated string parentProducts = 9;
+  repeated string childProducts = 10;
 }
 
 message StoredProduct{
@@ -56,6 +58,8 @@ message StoredProduct{
   map<string, int64> quantityByLocation = 8;
   int64 totalQuantity = 9;
   int64 quantityInTransit = 10;
+  repeated string parentProducts = 11;
+  repeated string childProducts = 12;
 }
 
 message ClearSingleProductRequest{

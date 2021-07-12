@@ -34,7 +34,6 @@ func (s *ProductServer) GetProductsInCategorySequence(ctx context.Context, in *s
 
 	var products []*service.StoredProduct
 
-	// https://stackoverflow.com/questions/45603132/im-getting-extra-data-in-buffer-error-when-trying-to-decode-a-gob-in-golang
 	var eof error
 	for eof != io.EOF {
 		var innerResponse service.StoredProduct
@@ -67,6 +66,8 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 		QuantityByLocation:       map[string]int64{in.Origin: in.TotalQuantity},
 		TotalQuantity:            in.TotalQuantity,
 		QuantityInTransit:        0,
+		ParentProducts:           in.ParentProducts,
+		ChildProducts:            in.ChildProducts,
 	}
 
 	var buffer bytes.Buffer

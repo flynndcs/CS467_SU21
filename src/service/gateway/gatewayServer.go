@@ -9,7 +9,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-//global connection and client for entire service lifecycle
 var (
 	productConn   = &grpc.ClientConn{}
 	productErr    error
@@ -24,7 +23,6 @@ func NewGatewayServer() *GatewayServer {
 	return &GatewayServer{}
 }
 
-//create connection and client globally rather than per API call
 func CreateGRPCConnAndClients() {
 	productConn, productErr = grpc.DialContext(context.Background(), "0.0.0.0:8080", grpc.WithBlock(), grpc.WithInsecure())
 	productClient = service.NewProductClient(productConn)
