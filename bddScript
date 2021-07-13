@@ -68,3 +68,11 @@ curl -s -H "Authorization: Bearer $token" -X POST "localhost:8090/api/product" \
     "tags": ["Child", "Parent"], "origin": "GenericOrigin", "intermediateDestinations": ["Int1", "Int2"],
     "endDestination": ["End1", "End2"], "totalQuantity": 2000, 
     "parentProducts": ["Green Coffee Beans"], "childProducts": ["Flavored Coffee Beans"]}' | json_pp
+
+echo "------------------------------------------------------------------------------------------------"
+echo "Scenario: User can update an existing product."
+curl -s -H "Authorization: Bearer $token" -X POST "localhost:8090/api/product/update" \
+    -d '{"name": "Roasted Coffee Beans", "categorySequence": ["All", "Coffee"], 
+    "tags": ["Child", "Parent"], "origin": "GenericOrigin", "intermediateDestinations": ["Int1", "Int2"],
+    "endDestination": ["End1", "End2"], "quantityByLocation": {"GenericOrigin": "1000"}, "totalQuantity": 2000, "quantityInTransit": 1000, 
+    "parentProducts": ["Green Coffee Beans"], "childProducts": ["Flavored Coffee Beans"]}' | json_pp
