@@ -39,7 +39,7 @@ sleep 1
 
 echo "------------------------------------------------------------------------------------------------"
 echo "Scenario: User can retrieve a product using its name and exact category sequence."
-curl -s -H "Authorization: Bearer $token" "localhost:8090/api/product?name=foobarCoffee&categorySequence=All&categorySequence=Coffee" | json_pp
+curl -s -H "Authorization: Bearer $token" "localhost:8090/api/product?name=Flavored%20Coffee%20Beans&categorySequence=All&categorySequence=Coffee" | json_pp
 
 sleep 1
 
