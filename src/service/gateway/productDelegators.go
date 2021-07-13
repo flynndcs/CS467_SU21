@@ -25,6 +25,14 @@ func (s *GatewayServer) GetProductsInCategorySequence(ctx context.Context, in *s
 	return response, nil
 }
 
+func (s *GatewayServer) UpdateProduct(ctx context.Context, in *service.StoredProduct) (*service.StoredProduct, error) {
+	response, err := productClient.UpdateProduct(ctx, in)
+	if err != nil {
+		log.Fatalln("Failed to send", err)
+	}
+	return response, nil
+}
+
 func (s *GatewayServer) PutSingleProduct(ctx context.Context, in *service.PutSingleProductRequest) (*service.StoredProduct, error) {
 	response, err := productClient.PutSingleProduct(ctx, in)
 	if err != nil {

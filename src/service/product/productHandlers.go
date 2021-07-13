@@ -47,6 +47,17 @@ func (s *ProductServer) GetProductsInCategorySequence(ctx context.Context, in *s
 	return &service.StoredProducts{Products: products}, nil
 }
 
+func (s *ProductServer) UpdateProduct(ctx context.Context, in *service.StoredProduct) (*service.StoredProduct, error) {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	enc.Encode(&in)
+
+	if !fdbDriver.Put(in.Name, in.CategorySequence, buffer.Bytes()) {
+		return nil, errors.New(" could not put product into FDB")
+	}
+	return in, nil
+}
+
 func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSingleProductRequest) (*service.StoredProduct, error) {
 	var expiresValue int64
 	if in.Expires == nil {
