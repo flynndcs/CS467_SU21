@@ -26,8 +26,8 @@ message GetSingleProductRequest{
   repeated string categorySequence = 2;
 }
 
-message GetProductsInCategorySequenceRequest{
-  repeated string categorySequence = 1;
+message GetProductsInRangeRequest{
+  repeated string range = 1;
 }
 
 message StoredProducts{
@@ -65,9 +65,11 @@ message StoredProduct{
 message ClearSingleProductRequest{
   string name = 1;
   repeated string categorySequence = 2;
+  repeated string tags = 3;
 }
 
 message ClearSingleProductResponse{
   string deletedName = 1;
   repeated string categorySequence = 2;
+  repeated string tags = 3;
 }

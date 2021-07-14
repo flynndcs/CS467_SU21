@@ -17,9 +17,9 @@ var (
 	buffer          bytes.Buffer
 )
 
-func encodeCategorySequence(categorySequence []string) (returnBytes []byte) {
+func encodeRange(givenRange []string) (returnBytes []byte) {
 	var bytes []byte
-	for _, v := range categorySequence {
+	for _, v := range givenRange {
 		bytes = append(bytes, []byte(v)...)
 	}
 	return bytes
@@ -105,7 +105,7 @@ func CheckCredentials(accountName string, username string, password string) (isV
 func Put(name string, categorySequence []string, value []byte) (didPut bool) {
 	var keyBytes []byte
 	keyBytes = append(keyBytes, productSubspace.Bytes()...)
-	keyBytes = append(keyBytes, encodeCategorySequence(categorySequence)...)
+	keyBytes = append(keyBytes, encodeRange(categorySequence)...)
 	keyBytes = append(keyBytes, name...)
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		tr.Set(fdb.Key(keyBytes), value)
@@ -122,7 +122,7 @@ func Put(name string, categorySequence []string, value []byte) (didPut bool) {
 func GetSingle(name string, categorySequence []string) (value []byte) {
 	var keyBytes []byte
 	keyBytes = append(keyBytes, productSubspace.Bytes()...)
-	keyBytes = append(keyBytes, encodeCategorySequence(categorySequence)...)
+	keyBytes = append(keyBytes, encodeRange(categorySequence)...)
 	keyBytes = append(keyBytes, []byte(name)...)
 
 	ret, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
@@ -137,10 +137,10 @@ func GetSingle(name string, categorySequence []string) (value []byte) {
 	return ret.([]byte)
 }
 
-func GetAllForCategorySequence(categorySequence []string) (repeatedValue []byte) {
+func GetAllForRange(givenRange []string) (repeatedValue []byte) {
 	var keyBytes []byte
 	keyBytes = append(keyBytes, productSubspace.Bytes()...)
-	keyBytes = append(keyBytes, encodeCategorySequence(categorySequence)...)
+	keyBytes = append(keyBytes, encodeRange(givenRange)...)
 
 	prefixRange, prefixError := fdb.PrefixRange(keyBytes)
 
@@ -165,10 +165,10 @@ func GetAllForCategorySequence(categorySequence []string) (repeatedValue []byte)
 	return values
 }
 
-func ClearSingle(name string, categorySequence []string) (didClear bool) {
+func ClearSingle(name string, givenRange []string) (didClear bool) {
 	var keyBytes []byte
 	keyBytes = append(keyBytes, productSubspace.Bytes()...)
-	keyBytes = append(keyBytes, encodeCategorySequence(categorySequence)...)
+	keyBytes = append(keyBytes, encodeRange(givenRange)...)
 	keyBytes = append(keyBytes, []byte(name)...)
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		tr.Clear(fdb.Key(keyBytes))

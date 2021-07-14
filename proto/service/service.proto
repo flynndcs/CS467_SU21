@@ -18,16 +18,9 @@ service Gateway {
     };
   }
 
-  rpc GetProductsInCategorySequence(GetProductsInCategorySequenceRequest) returns (StoredProducts){
+  rpc GetProductsInRange(GetProductsInRangeRequest) returns (StoredProducts){
     option (google.api.http) = {
       get: "/api/product/range"
-    };
-  }
-
-  rpc UpdateProduct(StoredProduct) returns (StoredProduct){
-    option (google.api.http) = {
-      post: "/api/product/update"
-      body: "*"
     };
   }
 
@@ -48,8 +41,7 @@ service Gateway {
 service Product{
   rpc GetProductStatus (ProductStatusRequest) returns (ProductStatusReply){}
   rpc GetSingleProduct (GetSingleProductRequest) returns (StoredProduct){}
-  rpc GetProductsInCategorySequence(GetProductsInCategorySequenceRequest) returns (StoredProducts){}
-  rpc UpdateProduct(StoredProduct) returns (StoredProduct){}
+  rpc GetProductsInRange(GetProductsInRangeRequest) returns (StoredProducts){}
   rpc PutSingleProduct (PutSingleProductRequest) returns (StoredProduct){}
   rpc ClearSingleProduct (ClearSingleProductRequest) returns (ClearSingleProductResponse){}
 }

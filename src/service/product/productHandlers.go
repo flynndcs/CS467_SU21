@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"io"
+	"log"
 	"time"
 
 	"CS467_SU21/proto/service"
@@ -27,8 +28,8 @@ func (s *ProductServer) GetSingleProduct(ctx context.Context, in *service.GetSin
 	return &response, nil
 }
 
-func (s *ProductServer) GetProductsInCategorySequence(ctx context.Context, in *service.GetProductsInCategorySequenceRequest) (*service.StoredProducts, error) {
-	value := fdbDriver.GetAllForCategorySequence(in.CategorySequence)
+func (s *ProductServer) GetProductsInRange(ctx context.Context, in *service.GetProductsInRangeRequest) (*service.StoredProducts, error) {
+	value := fdbDriver.GetAllForRange(in.Range)
 	buffer := bytes.NewBuffer(value)
 	dec := gob.NewDecoder(buffer)
 
@@ -45,17 +46,6 @@ func (s *ProductServer) GetProductsInCategorySequence(ctx context.Context, in *s
 	}
 
 	return &service.StoredProducts{Products: products}, nil
-}
-
-func (s *ProductServer) UpdateProduct(ctx context.Context, in *service.StoredProduct) (*service.StoredProduct, error) {
-	var buffer bytes.Buffer
-	enc := gob.NewEncoder(&buffer)
-	enc.Encode(&in)
-
-	if !fdbDriver.Put(in.Name, in.CategorySequence, buffer.Bytes()) {
-		return nil, errors.New(" could not put product into FDB")
-	}
-	return in, nil
 }
 
 func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSingleProductRequest) (*service.StoredProduct, error) {
@@ -88,6 +78,12 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 	if !fdbDriver.Put(in.Name, in.CategorySequence, buffer.Bytes()) {
 		return nil, errors.New(" could not put product into FDB")
 	}
+
+	for _, tag := range in.Tags {
+		if !fdbDriver.Put(in.Name, []string{tag}, buffer.Bytes()) {
+			log.Printf("Could not add record for %v tag to index", tag)
+		}
+	}
 	return &storedProduct, nil
 }
 
@@ -95,5 +91,12 @@ func (s *ProductServer) ClearSingleProduct(ctx context.Context, in *service.Clea
 	if !fdbDriver.ClearSingle(in.Name, in.CategorySequence) {
 		return nil, errors.New(" could not clear product from FDB")
 	}
-	return &service.ClearSingleProductResponse{DeletedName: in.Name, CategorySequence: in.CategorySequence}, nil
+
+	for _, tag := range in.Tags {
+		if !fdbDriver.ClearSingle(in.Name, []string{tag}) {
+			log.Printf("Could not delete record for %v tag from index", tag)
+		}
+	}
+
+	return &service.ClearSingleProductResponse{DeletedName: in.Name, CategorySequence: in.CategorySequence, Tags: in.Tags}, nil
 }
