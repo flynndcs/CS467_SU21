@@ -16,20 +16,12 @@ func (s *GatewayServer) GetSingleProduct(ctx context.Context, in *service.GetSin
 	return response, nil
 }
 
-func (s *GatewayServer) GetProductsInCategorySequence(ctx context.Context, in *service.GetProductsInCategorySequenceRequest) (*service.StoredProducts, error) {
-	response, err := productClient.GetProductsInCategorySequence(ctx, in)
+func (s *GatewayServer) GetProductsInRange(ctx context.Context, in *service.GetProductsInRangeRequest) (*service.StoredProducts, error) {
+	response, err := productClient.GetProductsInRange(ctx, in)
 	if err != nil {
 		log.Fatalln("Failed when sending a message with product client:", err)
 	}
 
-	return response, nil
-}
-
-func (s *GatewayServer) UpdateProduct(ctx context.Context, in *service.StoredProduct) (*service.StoredProduct, error) {
-	response, err := productClient.UpdateProduct(ctx, in)
-	if err != nil {
-		log.Fatalln("Failed to send", err)
-	}
 	return response, nil
 }
 
