@@ -2,12 +2,12 @@ package grpcServer
 
 import (
 	"bytes"
+	"container/list"
 	"context"
 	"encoding/gob"
 	"errors"
 	"io"
 	"log"
-	"time"
 
 	"CS467_SU21/proto/service"
 
@@ -18,7 +18,7 @@ func (s *ProductServer) GetProductStatus(ctx context.Context, in *service.Produc
 	return &service.ProductStatusReply{Status: "PRODUCT STATUS: NORMAL"}, nil
 }
 
-func (s *ProductServer) GetSingleProduct(ctx context.Context, in *service.GetSingleProductRequest) (*service.StoredProduct, error) {
+func (s *ProductServer) GetSingleProduct(ctx context.Context, in *service.ProductIdentifier) (*service.StoredProduct, error) {
 	value := fdbDriver.GetSingle(in.Name, in.CategorySequence)
 	buffer := bytes.NewBuffer(value)
 	dec := gob.NewDecoder(buffer)
@@ -49,17 +49,54 @@ func (s *ProductServer) GetProductsInRange(ctx context.Context, in *service.GetP
 }
 
 func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSingleProductRequest) (*service.StoredProduct, error) {
-	var expiresValue int64
-	if in.Expires == nil {
-		expiresValue = time.Now().Add(24 * time.Hour).Unix()
-	} else {
-		expiresValue = *in.Expires
+	var fullProductFamily service.FullProductFamily
+	familyQueue := list.New()
+
+	if in.LocalProductFamily != nil {
+		if in.LocalProductFamily.ParentProducts != nil {
+			fullProductFamily.Self = in.ProductIdentifier
+
+			for _, parent := range in.LocalProductFamily.ParentProducts {
+				familyQueue.PushBack(parent)
+			}
+			for familyQueue.Len() > 0 {
+				current := familyQueue.Front().Value.(*service.ProductIdentifier)
+				product, productError := s.GetSingleProduct(ctx, current)
+				if productError != nil {
+					log.Printf("Could not get parents from product %v", current.Name)
+				}
+				fullProductFamily.LocalProductFamily = append(fullProductFamily.LocalProductFamily, product.LocalProductFamily)
+				if product.LocalProductFamily.ParentProducts != nil {
+					for _, parent := range product.LocalProductFamily.ParentProducts {
+						familyQueue.PushBack(parent)
+					}
+				}
+				familyQueue.Remove(familyQueue.Front())
+			}
+		}
+		if in.LocalProductFamily.ChildProducts != nil {
+			for _, child := range in.LocalProductFamily.ChildProducts {
+				familyQueue.PushBack(child)
+			}
+			for familyQueue.Len() > 0 {
+				current := familyQueue.Front().Value.(*service.ProductIdentifier)
+				product, productError := s.GetSingleProduct(ctx, current)
+				if productError != nil {
+					log.Printf("Could not get parents from product %v", current.Name)
+				}
+				fullProductFamily.LocalProductFamily = append(fullProductFamily.LocalProductFamily, product.LocalProductFamily)
+				if product.LocalProductFamily.ChildProducts != nil {
+					for _, child := range product.LocalProductFamily.ChildProducts {
+						familyQueue.PushBack(child)
+					}
+				}
+				familyQueue.Remove(familyQueue.Front())
+			}
+		}
 	}
 
 	storedProduct := service.StoredProduct{
-		Name:                     in.Name,
-		CategorySequence:         in.CategorySequence,
-		Expires:                  expiresValue,
+		ProductIdentifier:        in.ProductIdentifier,
 		Tags:                     in.Tags,
 		Origin:                   in.Origin,
 		IntermediateDestinations: in.IntermediateDestinations,
@@ -67,27 +104,27 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 		QuantityByLocation:       map[string]int64{in.Origin: in.TotalQuantity},
 		TotalQuantity:            in.TotalQuantity,
 		QuantityInTransit:        0,
-		ParentProducts:           in.ParentProducts,
-		ChildProducts:            in.ChildProducts,
+		LocalProductFamily:       in.LocalProductFamily,
+		FullProductFamily:        &fullProductFamily,
 	}
 
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
 	enc.Encode(&storedProduct)
 
-	if !fdbDriver.Put(in.Name, in.CategorySequence, buffer.Bytes()) {
+	if !fdbDriver.Put(in.ProductIdentifier.Name, in.ProductIdentifier.CategorySequence, buffer.Bytes()) {
 		return nil, errors.New(" could not put product into FDB")
 	}
 
 	for _, tag := range in.Tags {
-		if !fdbDriver.Put(in.Name, []string{tag}, buffer.Bytes()) {
+		if !fdbDriver.Put(in.ProductIdentifier.Name, []string{tag}, buffer.Bytes()) {
 			log.Printf("Could not add record for %v tag to index", tag)
 		}
 	}
 	return &storedProduct, nil
 }
 
-func (s *ProductServer) ClearSingleProduct(ctx context.Context, in *service.ClearSingleProductRequest) (*service.ClearSingleProductResponse, error) {
+func (s *ProductServer) ClearSingleProduct(ctx context.Context, in *service.ClearSingleProductMessage) (*service.ClearSingleProductMessage, error) {
 	if !fdbDriver.ClearSingle(in.Name, in.CategorySequence) {
 		return nil, errors.New(" could not clear product from FDB")
 	}
@@ -98,5 +135,5 @@ func (s *ProductServer) ClearSingleProduct(ctx context.Context, in *service.Clea
 		}
 	}
 
-	return &service.ClearSingleProductResponse{DeletedName: in.Name, CategorySequence: in.CategorySequence, Tags: in.Tags}, nil
+	return &service.ClearSingleProductMessage{Name: in.Name, CategorySequence: in.CategorySequence, Tags: in.Tags}, nil
 }
