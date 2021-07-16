@@ -7,7 +7,7 @@ import (
 	"CS467_SU21/proto/service"
 )
 
-func (s *GatewayServer) GetSingleProduct(ctx context.Context, in *service.GetSingleProductRequest) (*service.StoredProduct, error) {
+func (s *GatewayServer) GetSingleProduct(ctx context.Context, in *service.ProductIdentifier) (*service.StoredProduct, error) {
 	response, err := productClient.GetSingleProduct(ctx, in)
 	if err != nil {
 		log.Fatalln("Failed when sending a message with product client:", err)
@@ -33,7 +33,7 @@ func (s *GatewayServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 	return response, nil
 }
 
-func (s *GatewayServer) ClearSingleProduct(ctx context.Context, in *service.ClearSingleProductRequest) (*service.ClearSingleProductResponse, error) {
+func (s *GatewayServer) ClearSingleProduct(ctx context.Context, in *service.ClearSingleProductMessage) (*service.ClearSingleProductMessage, error) {
 	response, err := productClient.ClearSingleProduct(ctx, in)
 	if err != nil {
 		log.Fatalln("Failed to send", err)

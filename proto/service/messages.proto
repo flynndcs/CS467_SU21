@@ -21,7 +21,7 @@ message ProductStatusReply{
   string status = 1;
 }
 
-message GetSingleProductRequest{
+message ProductIdentifier{
   string name = 1;
   repeated string categorySequence = 2;
 }
@@ -34,42 +34,42 @@ message StoredProducts{
   repeated StoredProduct products = 1;
 }
 
+message LocalProductFamily{
+  ProductIdentifier self = 1;
+  repeated ProductIdentifier parentProducts = 2;
+  repeated ProductIdentifier childProducts = 3;
+}
+
+message FullProductFamily{
+  ProductIdentifier self = 1;
+  repeated LocalProductFamily localProductFamily = 2;
+}
+
 message PutSingleProductRequest{
-  string name = 1;
-  repeated string categorySequence = 2;
-  optional int64 expires = 3;
-  repeated string tags = 4;
-  string origin = 5;
-  repeated string intermediateDestinations = 6;
-  repeated string endDestinations= 7;
-  int64 totalQuantity = 8;
-  repeated string parentProducts = 9;
-  repeated string childProducts = 10;
+  ProductIdentifier productIdentifier = 1;
+  repeated string tags = 2;
+  string origin = 3;
+  repeated string intermediateDestinations = 4;
+  repeated string endDestinations = 5;
+  int64 totalQuantity = 6;
+  LocalProductFamily localProductFamily = 7;
 }
 
 message StoredProduct{
-  string name = 1;
-  repeated string categorySequence = 2;
-  int64 expires = 3;
-  repeated string tags = 4;
-  string origin = 5;
-  repeated string intermediateDestinations = 6;
-  repeated string endDestinations= 7;
-  map<string, int64> quantityByLocation = 8;
-  int64 totalQuantity = 9;
-  int64 quantityInTransit = 10;
-  repeated string parentProducts = 11;
-  repeated string childProducts = 12;
+  ProductIdentifier productIdentifier = 1;
+  repeated string tags = 2;
+  string origin = 3;
+  repeated string intermediateDestinations = 4;
+  repeated string endDestinations= 5;
+  map<string, int64> quantityByLocation = 6;
+  int64 totalQuantity = 7;
+  int64 quantityInTransit = 8;
+  LocalProductFamily localProductFamily = 9;
+  FullProductFamily fullProductFamily = 10;
 }
 
-message ClearSingleProductRequest{
+message ClearSingleProductMessage{
   string name = 1;
-  repeated string categorySequence = 2;
-  repeated string tags = 3;
-}
-
-message ClearSingleProductResponse{
-  string deletedName = 1;
   repeated string categorySequence = 2;
   repeated string tags = 3;
 }

@@ -12,7 +12,7 @@ service Gateway {
     };
   }
 
-  rpc GetSingleProduct(GetSingleProductRequest) returns (StoredProduct){
+  rpc GetSingleProduct(ProductIdentifier) returns (StoredProduct){
     option (google.api.http) = {
       get: "/api/product"
     };
@@ -31,7 +31,7 @@ service Gateway {
     };
   }
 
-  rpc ClearSingleProduct(ClearSingleProductRequest) returns (ClearSingleProductResponse){
+  rpc ClearSingleProduct(ClearSingleProductMessage) returns (ClearSingleProductMessage){
     option (google.api.http) = {
       delete: "/api/product"
     };
@@ -40,8 +40,8 @@ service Gateway {
 
 service Product{
   rpc GetProductStatus (ProductStatusRequest) returns (ProductStatusReply){}
-  rpc GetSingleProduct (GetSingleProductRequest) returns (StoredProduct){}
+  rpc GetSingleProduct (ProductIdentifier) returns (StoredProduct){}
   rpc GetProductsInRange(GetProductsInRangeRequest) returns (StoredProducts){}
   rpc PutSingleProduct (PutSingleProductRequest) returns (StoredProduct){}
-  rpc ClearSingleProduct (ClearSingleProductRequest) returns (ClearSingleProductResponse){}
+  rpc ClearSingleProduct (ClearSingleProductMessage) returns (ClearSingleProductMessage){}
 }
