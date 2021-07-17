@@ -27,6 +27,8 @@ func Authenticate(gwmux runtime.ServeMux) http.Handler {
 		user, pass, status := r.BasicAuth()
 		if r.Method == "OPTIONS" {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.WriteHeader(http.StatusOK)
+			return
 		} else if r.Method == "POST" && r.URL.Path == "/createAccount" {
 			createAccount(r)
 			return
