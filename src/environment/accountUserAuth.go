@@ -22,12 +22,18 @@ type createUserGetTokenStruct struct {
 	AccountName string
 }
 
+func setupResponse(w *http.ResponseWriter, r *http.Request) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*w).Header().Set("Access-Control-Allow-Credentials", "true")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
 func Authenticate(gwmux runtime.ServeMux) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, pass, status := r.BasicAuth()
+		setupResponse(&w, r)
 		if r.Method == "OPTIONS" {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.WriteHeader(http.StatusOK)
 			return
 		} else if r.Method == "POST" && r.URL.Path == "/createAccount" {
 			createAccount(r)
