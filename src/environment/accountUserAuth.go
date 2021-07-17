@@ -25,7 +25,9 @@ type createUserGetTokenStruct struct {
 func Authenticate(gwmux runtime.ServeMux) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, pass, status := r.BasicAuth()
-		if r.Method == "POST" && r.URL.Path == "/createAccount" {
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		} else if r.Method == "POST" && r.URL.Path == "/createAccount" {
 			createAccount(r)
 			return
 		} else if r.Method == "POST" && r.URL.Path == "/createUser" {
