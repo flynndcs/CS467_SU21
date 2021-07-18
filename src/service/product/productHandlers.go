@@ -53,9 +53,9 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 	familyQueue := list.New()
 
 	if in.LocalProductFamily != nil {
+		fullProductFamily.Self = in.ProductIdentifier
+		fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, in.LocalProductFamily)
 		if in.LocalProductFamily.ParentProducts != nil {
-			fullProductFamily.Self = in.ProductIdentifier
-
 			for _, parent := range in.LocalProductFamily.ParentProducts {
 				familyQueue.PushBack(parent)
 			}
@@ -65,7 +65,7 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 				if productError != nil {
 					log.Printf("Could not get parents from product %v", current.Name)
 				}
-				fullProductFamily.LocalProductFamily = append(fullProductFamily.LocalProductFamily, product.LocalProductFamily)
+				fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, product.LocalProductFamily)
 				if product.LocalProductFamily.ParentProducts != nil {
 					for _, parent := range product.LocalProductFamily.ParentProducts {
 						familyQueue.PushBack(parent)
@@ -84,7 +84,7 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 				if productError != nil {
 					log.Printf("Could not get parents from product %v", current.Name)
 				}
-				fullProductFamily.LocalProductFamily = append(fullProductFamily.LocalProductFamily, product.LocalProductFamily)
+				fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, product.LocalProductFamily)
 				if product.LocalProductFamily.ChildProducts != nil {
 					for _, child := range product.LocalProductFamily.ChildProducts {
 						familyQueue.PushBack(child)

@@ -42,7 +42,7 @@ message LocalProductFamily{
 
 message FullProductFamily{
   ProductIdentifier self = 1;
-  repeated LocalProductFamily localProductFamily = 2;
+  repeated LocalProductFamily localProductFamilies = 2;
 }
 
 message PutSingleProductRequest{
