@@ -15,6 +15,7 @@
 
 - run `./startService`
     - generates from protobuf files, sets logging settings and starts REST/GRPC services
+    - If this script hangs on "Initializing FDB", run `sudo service foundationdb start`
 
 ## Usage (Gateway, Product API) 
 - See Development below for explanations on implementation.
