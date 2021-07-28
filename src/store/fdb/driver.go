@@ -12,12 +12,12 @@ import (
 
 var (
 	accountSubspace subspace.Subspace
-	productSubspace subspace.Subspace
+	ProductSubspace subspace.Subspace
 	db              fdb.Database
 	buffer          bytes.Buffer
 )
 
-func encodeRange(givenRange []string) (returnBytes []byte) {
+func EncodeCategories(givenRange []string) (returnBytes []byte) {
 	var bytes []byte
 	for _, v := range givenRange {
 		bytes = append(bytes, []byte(v)...)
@@ -33,7 +33,7 @@ func InitFDB() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	productSubspace = productDir.Sub("product")
+	ProductSubspace = productDir.Sub("product")
 
 	accountDir, err := directory.CreateOrOpen(db, []string{"account"}, nil)
 	if err != nil {
@@ -102,13 +102,9 @@ func CheckCredentials(accountName string, username string, password string) (isV
 	return ret.(bool)
 }
 
-func Put(name string, categorySequence []string, value []byte) (didPut bool) {
-	var keyBytes []byte
-	keyBytes = append(keyBytes, productSubspace.Bytes()...)
-	keyBytes = append(keyBytes, encodeRange(categorySequence)...)
-	keyBytes = append(keyBytes, name...)
+func Put(key []byte, value []byte) (didPut bool) {
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		tr.Set(fdb.Key(keyBytes), value)
+		tr.Set(fdb.Key(key), value)
 		return
 	})
 	if err != nil {
@@ -119,14 +115,9 @@ func Put(name string, categorySequence []string, value []byte) (didPut bool) {
 	return true
 }
 
-func GetSingle(name string, categorySequence []string) (value []byte) {
-	var keyBytes []byte
-	keyBytes = append(keyBytes, productSubspace.Bytes()...)
-	keyBytes = append(keyBytes, encodeRange(categorySequence)...)
-	keyBytes = append(keyBytes, []byte(name)...)
-
+func Get(key []byte) (value []byte) {
 	ret, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		ret = tr.Get(fdb.Key(keyBytes)).MustGet()
+		ret = tr.Get(fdb.Key(key)).MustGet()
 		return
 	})
 	if err != nil {
@@ -137,23 +128,19 @@ func GetSingle(name string, categorySequence []string) (value []byte) {
 	return ret.([]byte)
 }
 
-func GetAllForRange(givenRange []string) (repeatedValue []byte) {
-	var keyBytes []byte
-	keyBytes = append(keyBytes, productSubspace.Bytes()...)
-	keyBytes = append(keyBytes, encodeRange(givenRange)...)
-
-	prefixRange, prefixError := fdb.PrefixRange(keyBytes)
+func GetRange(key []byte) (repeatedValue [][]byte) {
+	prefixRange, prefixError := fdb.PrefixRange(key)
 
 	if prefixError != nil {
 		log.Println("Could not get prefix for key: ", prefixError)
 	}
 
-	var values []byte
+	var values [][]byte
 
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
 		retIter := tr.GetRange(prefixRange, fdb.RangeOptions{}).GetSliceOrPanic()
 		for _, kv := range retIter {
-			values = append(values, kv.Value...)
+			values = append(values, kv.Value)
 		}
 		return values, nil
 	})
@@ -165,13 +152,9 @@ func GetAllForRange(givenRange []string) (repeatedValue []byte) {
 	return values
 }
 
-func ClearSingle(name string, givenRange []string) (didClear bool) {
-	var keyBytes []byte
-	keyBytes = append(keyBytes, productSubspace.Bytes()...)
-	keyBytes = append(keyBytes, encodeRange(givenRange)...)
-	keyBytes = append(keyBytes, []byte(name)...)
+func Clear(key []byte) (didClear bool) {
 	_, err := db.Transact(func(tr fdb.Transaction) (ret interface{}, e error) {
-		tr.Clear(fdb.Key(keyBytes))
+		tr.Clear(fdb.Key(key))
 		return
 	})
 	if err != nil {

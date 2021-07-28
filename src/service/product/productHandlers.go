@@ -5,21 +5,23 @@ import (
 	"container/list"
 	"context"
 	"encoding/gob"
-	"errors"
-	"io"
 	"log"
 
 	"CS467_SU21/proto/service"
-
-	fdbDriver "CS467_SU21/src/store/fdb"
+	"CS467_SU21/src/store/fdb"
 )
 
 func (s *ProductServer) GetProductStatus(ctx context.Context, in *service.ProductStatusRequest) (*service.ProductStatusReply, error) {
 	return &service.ProductStatusReply{Status: "PRODUCT STATUS: NORMAL"}, nil
 }
 
-func (s *ProductServer) GetSingleProduct(ctx context.Context, in *service.ProductIdentifier) (*service.StoredProduct, error) {
-	value := fdbDriver.GetSingle(in.Name, in.CategorySequence)
+func (s *ProductServer) GetProduct(ctx context.Context, in *service.ProductIdentifier) (*service.StoredProduct, error) {
+	prefixedIdKey := fdb.ProductSubspace.Bytes()
+	prefixedIdKey = append(prefixedIdKey, byte(in.Id))
+	value := fdb.Get(prefixedIdKey)
+	if value == nil {
+		return &service.StoredProduct{}, nil
+	}
 	buffer := bytes.NewBuffer(value)
 	dec := gob.NewDecoder(buffer)
 
@@ -28,42 +30,90 @@ func (s *ProductServer) GetSingleProduct(ctx context.Context, in *service.Produc
 	return &response, nil
 }
 
-func (s *ProductServer) GetProductsInRange(ctx context.Context, in *service.GetProductsInRangeRequest) (*service.StoredProducts, error) {
-	value := fdbDriver.GetAllForRange(in.Range)
-	buffer := bytes.NewBuffer(value)
-	dec := gob.NewDecoder(buffer)
+func (s *ProductServer) GetProducts(ctx context.Context, in *service.GetProductsRequest) (*service.StoredProducts, error) {
+	var collectedIdKeys [][]byte
+	var resultIdKeys [][]byte
+
+	if in.Origin != "" {
+		prefixedOriginKey := fdb.ProductSubspace.Bytes()
+		prefixedOriginKey = append(prefixedOriginKey, []byte(in.Origin)...)
+
+		resultIdKeys = fdb.GetRange(prefixedOriginKey)
+		if resultIdKeys != nil {
+			collectedIdKeys = append(collectedIdKeys, resultIdKeys...)
+		}
+	}
+
+	if in.Categories != nil {
+		prefixedCategoriesKey := fdb.ProductSubspace.Bytes()
+		prefixedCategoriesKey = append(prefixedCategoriesKey, fdb.EncodeCategories(in.Categories)...)
+
+		resultIdKeys = fdb.GetRange(prefixedCategoriesKey)
+		if resultIdKeys != nil {
+			collectedIdKeys = append(collectedIdKeys, resultIdKeys...)
+		}
+
+	}
+
+	if in.Tags != nil {
+		for _, tag := range in.Tags {
+			prefixedTagKey := fdb.ProductSubspace.Bytes()
+			prefixedTagKey = append(prefixedTagKey, []byte(tag)...)
+			resultIdKeys = fdb.GetRange(prefixedTagKey)
+			if resultIdKeys != nil {
+				collectedIdKeys = append(collectedIdKeys, resultIdKeys...)
+			}
+		}
+	}
+
+	collectedIdKeys = removeDuplicateKeys(collectedIdKeys)
 
 	var products []*service.StoredProduct
 
-	var eof error
-	for eof != io.EOF {
-		var innerResponse service.StoredProduct
-		eof = dec.Decode(&innerResponse)
-		if eof != nil {
-			continue
+	for _, idKey := range collectedIdKeys {
+		product := fdb.Get(idKey)
+		if product != nil {
+			buffer := bytes.NewBuffer(product)
+			dec := gob.NewDecoder(buffer)
+			var decodedProduct *service.StoredProduct
+			dec.Decode(&decodedProduct)
+			products = append(products, decodedProduct)
 		}
-		products = append(products, &innerResponse)
 	}
 
 	return &service.StoredProducts{Products: products}, nil
 }
 
-func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSingleProductRequest) (*service.StoredProduct, error) {
+func removeDuplicateKeys(array [][]byte) [][]byte {
+	keys := make(map[string]bool)
+	list := [][]byte{}
+
+	for _, entry := range array {
+		if _, value := keys[string(entry)]; !value {
+			keys[string(entry)] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
+
+func (s *ProductServer) PutProduct(ctx context.Context, in *service.PutProductRequest) (*service.StoredProduct, error) {
 	var fullProductFamily service.FullProductFamily
 	familyQueue := list.New()
 
+	fullProductFamily.Self = in.ProductIdentifier
+	fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, in.LocalProductFamily)
+
 	if in.LocalProductFamily != nil {
-		fullProductFamily.Self = in.ProductIdentifier
-		fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, in.LocalProductFamily)
 		if in.LocalProductFamily.ParentProducts != nil {
 			for _, parent := range in.LocalProductFamily.ParentProducts {
 				familyQueue.PushBack(parent)
 			}
 			for familyQueue.Len() > 0 {
 				current := familyQueue.Front().Value.(*service.ProductIdentifier)
-				product, productError := s.GetSingleProduct(ctx, current)
+				product, productError := s.GetProduct(ctx, current)
 				if productError != nil {
-					log.Printf("Could not get parents from product %v", current.Name)
+					log.Printf("Could not get parents from product %v", current.Id)
 				}
 				fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, product.LocalProductFamily)
 				if product.LocalProductFamily.ParentProducts != nil {
@@ -80,9 +130,9 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 			}
 			for familyQueue.Len() > 0 {
 				current := familyQueue.Front().Value.(*service.ProductIdentifier)
-				product, productError := s.GetSingleProduct(ctx, current)
+				product, productError := s.GetProduct(ctx, current)
 				if productError != nil {
-					log.Printf("Could not get parents from product %v", current.Name)
+					log.Printf("Could not get parents from product %v", current.Id)
 				}
 				fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, product.LocalProductFamily)
 				if product.LocalProductFamily.ChildProducts != nil {
@@ -97,6 +147,8 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 
 	storedProduct := service.StoredProduct{
 		ProductIdentifier:        in.ProductIdentifier,
+		Name:                     in.Name,
+		Categories:               in.Categories,
 		Tags:                     in.Tags,
 		Origin:                   in.Origin,
 		IntermediateDestinations: in.IntermediateDestinations,
@@ -112,28 +164,70 @@ func (s *ProductServer) PutSingleProduct(ctx context.Context, in *service.PutSin
 	enc := gob.NewEncoder(&buffer)
 	enc.Encode(&storedProduct)
 
-	if !fdbDriver.Put(in.ProductIdentifier.Name, in.ProductIdentifier.CategorySequence, buffer.Bytes()) {
-		return nil, errors.New(" could not put product into FDB")
+	prefixedIdKey := fdb.ProductSubspace.Bytes()
+	prefixedIdKey = append(prefixedIdKey, byte(in.ProductIdentifier.Id))
+
+	if !fdb.Put(prefixedIdKey, buffer.Bytes()) {
+		log.Println("Could not put product into FDB")
+	}
+
+	prefixedOriginKey := fdb.ProductSubspace.Bytes()
+	prefixedOriginKey = append(prefixedOriginKey, []byte(in.Origin)...)
+	prefixedOriginKey = append(prefixedOriginKey, byte(in.ProductIdentifier.Id))
+
+	if !fdb.Put(prefixedOriginKey, prefixedIdKey) {
+		log.Println("Could not put product into origin index")
+	}
+
+	prefixedCategoryKey := fdb.ProductSubspace.Bytes()
+	prefixedCategoryKey = append(prefixedCategoryKey, fdb.EncodeCategories(in.Categories)...)
+	prefixedCategoryKey = append(prefixedCategoryKey, byte(in.ProductIdentifier.Id))
+
+	if !fdb.Put(prefixedCategoryKey, prefixedIdKey) {
+		log.Printf("Could not put product into category index")
 	}
 
 	for _, tag := range in.Tags {
-		if !fdbDriver.Put(in.ProductIdentifier.Name, []string{tag}, buffer.Bytes()) {
-			log.Printf("Could not add record for %v tag to index", tag)
+		prefixedTagKey := fdb.ProductSubspace.Bytes()
+		prefixedTagKey = append(prefixedTagKey, []byte(tag)...)
+		prefixedTagKey = append(prefixedTagKey, byte(in.ProductIdentifier.Id))
+
+		if !fdb.Put(prefixedTagKey, prefixedIdKey) {
+			log.Printf("Could not put product into tag index")
 		}
 	}
 	return &storedProduct, nil
 }
 
-func (s *ProductServer) ClearSingleProduct(ctx context.Context, in *service.ClearSingleProductMessage) (*service.ClearSingleProductMessage, error) {
-	if !fdbDriver.ClearSingle(in.Name, in.CategorySequence) {
-		return nil, errors.New(" could not clear product from FDB")
+func (s *ProductServer) ClearProduct(ctx context.Context, in *service.ClearProductMessage) (*service.ClearProductMessage, error) {
+	prefixedIdKey := fdb.ProductSubspace.Bytes()
+	prefixedIdKey = append(prefixedIdKey, byte(in.Id))
+	if !fdb.Clear(prefixedIdKey) {
+		log.Println("Could not clear product from FDB")
+	}
+
+	prefixedOriginKey := fdb.ProductSubspace.Bytes()
+	prefixedOriginKey = append(prefixedOriginKey, []byte(in.Origin)...)
+	prefixedOriginKey = append(prefixedOriginKey, byte(in.Id))
+	if !fdb.Clear(prefixedOriginKey) {
+		log.Println("Could not clear product from origin index")
+	}
+
+	prefixedCategoryKey := fdb.ProductSubspace.Bytes()
+	prefixedCategoryKey = append(prefixedCategoryKey, fdb.EncodeCategories(in.Categories)...)
+	prefixedCategoryKey = append(prefixedCategoryKey, byte(in.Id))
+	if !fdb.Clear(prefixedCategoryKey) {
+		log.Println("Could not clear product from origin index")
 	}
 
 	for _, tag := range in.Tags {
-		if !fdbDriver.ClearSingle(in.Name, []string{tag}) {
-			log.Printf("Could not delete record for %v tag from index", tag)
+		prefixedTagKey := fdb.ProductSubspace.Bytes()
+		prefixedTagKey = append(prefixedTagKey, []byte(tag)...)
+		prefixedTagKey = append(prefixedTagKey, byte(in.Id))
+		if !fdb.Clear(prefixedTagKey) {
+			log.Println("Could not clear product from origin index")
 		}
 	}
 
-	return &service.ClearSingleProductMessage{Name: in.Name, CategorySequence: in.CategorySequence, Tags: in.Tags}, nil
+	return &service.ClearProductMessage{Id: in.Id, Origin: in.Origin, Categories: in.Categories, Tags: in.Tags}, nil
 }

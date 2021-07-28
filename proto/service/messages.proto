@@ -22,12 +22,13 @@ message ProductStatusReply{
 }
 
 message ProductIdentifier{
-  string name = 1;
-  repeated string categorySequence = 2;
+  int64 id = 1;
 }
 
-message GetProductsInRangeRequest{
-  repeated string range = 1;
+message GetProductsRequest{
+  repeated string categories = 1;
+  repeated string tags = 2;
+  string origin = 3;
 }
 
 message StoredProducts{
@@ -45,31 +46,36 @@ message FullProductFamily{
   repeated LocalProductFamily localProductFamilies = 2;
 }
 
-message PutSingleProductRequest{
+message PutProductRequest{
   ProductIdentifier productIdentifier = 1;
-  repeated string tags = 2;
-  string origin = 3;
-  repeated string intermediateDestinations = 4;
-  repeated string endDestinations = 5;
-  int64 totalQuantity = 6;
-  LocalProductFamily localProductFamily = 7;
+  string name = 2;
+  repeated string categories= 3;
+  repeated string tags = 4;
+  string origin = 5;
+  repeated string intermediateDestinations = 6;
+  repeated string endDestinations = 7;
+  int64 totalQuantity = 8;
+  LocalProductFamily localProductFamily = 9;
 }
 
 message StoredProduct{
   ProductIdentifier productIdentifier = 1;
-  repeated string tags = 2;
-  string origin = 3;
-  repeated string intermediateDestinations = 4;
-  repeated string endDestinations= 5;
-  map<string, int64> quantityByLocation = 6;
-  int64 totalQuantity = 7;
-  int64 quantityInTransit = 8;
-  LocalProductFamily localProductFamily = 9;
-  FullProductFamily fullProductFamily = 10;
+  string name = 2;
+  repeated string categories= 3;
+  repeated string tags = 4;
+  string origin = 5;
+  repeated string intermediateDestinations = 6;
+  repeated string endDestinations= 7;
+  map<string, int64> quantityByLocation = 8;
+  int64 totalQuantity = 9;
+  int64 quantityInTransit = 10;
+  LocalProductFamily localProductFamily = 11;
+  FullProductFamily fullProductFamily = 12;
 }
 
-message ClearSingleProductMessage{
-  string name = 1;
-  repeated string categorySequence = 2;
+message ClearProductMessage{
+  int64 id = 1;
+  repeated string categories= 2;
   repeated string tags = 3;
+  string origin = 4;
 }
