@@ -10,97 +10,108 @@
 
 
 ## Installation / Run (Linux only)
+- install Golang (1.16.5)
 - run `./install`
-    - downloads go, foundationdb, buf, and necessary dependencies
+    - downloads foundationdb, buf, and necessary dependencies
 
 - run `./startService`
     - generates from protobuf files, sets logging settings and starts REST/GRPC services
     - If this script hangs on "Initializing FDB", run `sudo service foundationdb start`
 
 ## Usage (Gateway, Product API) 
-- See Development below for explanations on implementation.
-- After creating a user with the service, a user must get a JWT token which is valid for one hour.
-    - *This JWT token must be included in the Authorization header for each subsequent request.*
+
 - Using browser, Postman or cURL:
     - (cURL - make sure to enclose URLs in single or double quotes to recognize all query parameters)
+    - **Create Account** HTTP POST to localhost:8090/createAccount
+        - With basic auth headers for username, password
+        - With body:
+        ```
+            {
+                "accountName": <name>,
+                "users": [<known users, may be empty>]
+            }
+        ```
+        - Expected response:
+        ```
+            {
+                "accountName": <name>,
+            }
+        ```
     - **Create User** HTTP POST to localhost:8090/createUser
         - With basic auth headers for username, password
+        - With body:
+        ```
+            {
+                "accountName": <name>,
+            }
+        ```
         - Expected response:
         ```
         ```
     - **Get JWT Token** HTTP GET to localhost:8090/getToken
         - With basic auth headers for same username, password as created previously
+        - With body:
+        ```
+            {
+                "accountName": <name>,
+            }
+        ```
         - Expected response:
         ```
         <token>
         ```
+        - **This JWT token must be included in the Authorization header for each subsequent request.**
     - **Get Status**: HTTP GET to localhost:8090/api/status
         - Expected response:
             ```
             { "status": "GATEWAY STATUS: NORMAL, PRODUCT STATUS: NORMAL"}
             ```
-    - **Put Product**: HTTP POST to localhost:8090/api/product
+    - **Create Product**: HTTP POST to localhost:8090/api/product
         - With body:
             ```
             {
-                "name": "<name>",
-                "categorySequence": [<elements>]
-                "expires": "<seconds since epoch>" //optional, default is 24 hours in advance
-                "tags": [<tags>] // optional
-            }
-            ```
-        - Expected response: // TODO decide on minimum structure for naming here
-            ```
-            {
+                "productIdentifier": {"id": <id>}, 
                 "name": "<name>", 
-                "categorySequence": [<elements>], 
-                "data": "<random UUID>", 
-                "expires": "<seconds since epoch>", 
-                "tags": [<tags>]
+                "categories": [<ordered categories>],
+                "tags": [<ordered tags>], 
+                "origin": "<origin>", 
+                "intermediateDestinations": [<destinations>],
+                "endDestinations": [<destinations>], 
+                "totalQuantity": <quantity>,
+                "localProductFamily": {
+                    "childProducts": [{"id": <id>},...]
+                    "self": {"id": <id>}
+                    "parentProducts": [{"id": <id>},...]
             }
             ```
-    - **Get Single Product**: HTTP GET to localhost:8090/api/product?name=name&categorySequence=element&categorySequence=element` 
-        - productName entry must have been previously created via POST and you must supply all elements as defined in categorySequence and the name
+        - Expected response: 
+            - same as above with full product family, quantity by location, and quantity in transit added
+    - **Get Single Product**: HTTP GET to localhost:8090/api/product?id=...
         - Expected response:
-            ```
-            {
-                "name": "<first element>", 
-                "categorySequence": [<elements>], 
-                "data": "<random UUID>", 
-                "expires": "<seconds since epoch>",
-                "tags": [<tags>]
-            }
-            ```
-    - **Get Products In categorySequence**: HTTP GET to localhost:8090/api/product/range?categorySequence=element&categorySequence... 
-        - must supply a minimum of one element for scoping, will match all records that were defined with the provided elements
+            - same as when product created
+           
+    - **Search Products By Category**: HTTP GET to localhost:8090/api/product/search?categories=...&categories=...
+        - must supply a minimum of one category
         - Expected response
-            - all matching values for these keys in this range
-            ```
-            {
-                "products": [
-                    {
-                        "name": "<name>",
-                        "categorySequence": [<elements>],
-                        "data": "<uuid>",
-                        "expires": "<seconds since epoch>",
-                        "tags": [<tags>]
+            - all matching products for this/these category(ies)
+    - **Search Products By Origin**: HTTP GET to localhost:8090/api/product/search?origin=...
+            - Expected response
+                - all matching products for this origin
+    - **Search Products By Tags**: HTTP GET to localhost:8090/api/product/search?tags=...&tags=...
+            - must supply a minimum of one tag
+            - Expected response
+                - all matching products for this/these tag(s)
 
-                    },
-                    {
-                        "name": "<name>",
-                        "categorySequence": [<elements>],
-                        "data": "<uuid>",
-                        "expires": "<seconds since epoch>",
-                        "tags": [<tags>]
-                    }
-                ]
-            }
-            ```
-    - **Delete Product**: HTTP DELETE to localhost:8090/api/product?name=name&categorySequence=...
-        - must supply all elements for categorySequence and name as defined when created
+    - **Delete Product**: HTTP DELETE to localhost:8090/api/product?id=...&categories=...&tags=...&origin=...
+        - must supply id, all categories, all tags, and origin to fully delete
         - Expected response (empty is success):
             ```
-            {"deletedName": "<name>", "categorySequence": [<elements>]}
+            {
+                "id": <id>,
+                "categories": [<categories>...],
+                "tags": [<tags>],
+                "origin": <origin>
+            }
             ```
 
 
