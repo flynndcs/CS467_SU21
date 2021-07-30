@@ -79,3 +79,34 @@ message ClearProductMessage{
   repeated string tags = 3;
   string origin = 4;
 }
+
+/* LOCATION SERVICE */
+
+message LocationIdentifier{
+  string name = 1;
+}
+
+message PutLocationMessage{
+  string name = 1;
+  repeated string receives = 2;
+  repeated string sends = 3;
+  repeated LocationIdentifier previousLocations = 4;
+  repeated LocationIdentifier nextLocations = 5;
+}
+
+message StoredLocation{
+  string name = 1;
+  repeated string receives = 2;
+  repeated string sends = 3;
+  map<int64, int64> quantityByProduct = 4;
+  repeated LocationIdentifier previousLocations = 5;
+  repeated LocationIdentifier nextLocations = 6;
+}
+
+message MoveProductMessage{
+  int64 productId = 1;
+  string productName = 2;
+  int64 quantity = 3;
+  LocationIdentifier sendLocation = 4;
+  LocationIdentifier receiveLocation = 5;
+}

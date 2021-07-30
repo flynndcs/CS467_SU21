@@ -108,3 +108,46 @@ curl -s -H "Authorization: Bearer $token" "localhost:8090/api/product?id=3" | js
 sleep 1
 
 
+echo "------------------------------------------------------------------------------------------------"
+echo "Scenario: User can create a location for products."
+curl -s -H "Authorization: Bearer $token" "localhost:8090/api/location" \
+    -d '{
+        "name": "CoffeeFarm1",
+        "receives": ["Green Coffee Beans"],
+        "sends": ["Green Coffee Beans"],
+        "nextLocations": [{"name":"Mid Coffee"}]
+    }' | json_pp
+
+sleep 1
+
+echo "------------------------------------------------------------------------------------------------"
+echo "Scenario: User can retrieve a location for products."
+curl -s -H "Authorization: Bearer $token" "localhost:8090/api/location?name=CoffeeFarm1" | json_pp
+
+sleep 1
+
+
+echo "------------------------------------------------------------------------------------------------"
+echo "Scenario: User can population a location with products."
+curl -s -H "Authorization: Bearer $token" "localhost:8090/api/location/receiveProduct" \
+    -d '{
+        "productId": 1,
+        "productName": "Green Coffee Beans",
+        "quantity": 5000,
+        "receiveLocation": {"name": "CoffeeFarm1"}
+    }' | json_pp
+
+sleep 1
+
+echo "------------------------------------------------------------------------------------------------"
+echo "Scenario: User can retrieve a location with the quantity updated."
+curl -s -H "Authorization: Bearer $token" "localhost:8090/api/location?name=CoffeeFarm1" | json_pp
+
+# echo "------------------------------------------------------------------------------------------------"
+# echo "Scenario: User can send a product from one location destined for another location."
+
+# echo "------------------------------------------------------------------------------------------------"
+# echo "Scenario: User can attempt and fail to send a product due to insufficient quantity."
+
+# echo "------------------------------------------------------------------------------------------------"
+# echo "Scenario: User can receive a product originating from another location."

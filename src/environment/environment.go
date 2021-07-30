@@ -13,6 +13,8 @@ import (
 
 	product "CS467_SU21/src/service/product"
 
+	location "CS467_SU21/src/service/location"
+
 	fdbDriver "CS467_SU21/src/store/fdb"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -42,8 +44,11 @@ func createTCPListener(target string) net.Listener {
 
 func createGRPCServer(lis net.Listener) {
 	s := grpc.NewServer()
+
 	gatewaypb.RegisterGatewayServer(s, gateway.NewGatewayServer())
 	gatewaypb.RegisterProductServer(s, product.NewProductServer())
+	gatewaypb.RegisterLocationServer(s, location.NewLocationServer())
+
 	log.Println("Serving gRPC on " + lis.Addr().String())
 	go func() {
 		log.Fatal(s.Serve(lis))

@@ -199,6 +199,20 @@ func (s *ProductServer) PutProduct(ctx context.Context, in *service.PutProductRe
 	return &storedProduct, nil
 }
 
+func (s *ProductServer) UpdateProduct(ctx context.Context, in *service.StoredProduct) (*service.StoredProduct, error) {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	enc.Encode(&in)
+
+	prefixedIdKey := fdb.ProductSubspace.Bytes()
+	prefixedIdKey = append(prefixedIdKey, byte(in.ProductIdentifier.Id))
+
+	if !fdb.Put(prefixedIdKey, buffer.Bytes()) {
+		log.Println("Could not put product into FDB")
+	}
+	return in, nil
+}
+
 func (s *ProductServer) ClearProduct(ctx context.Context, in *service.ClearProductMessage) (*service.ClearProductMessage, error) {
 	prefixedIdKey := fdb.ProductSubspace.Bytes()
 	prefixedIdKey = append(prefixedIdKey, byte(in.Id))
