@@ -12,6 +12,8 @@ service Gateway {
     };
   }
 
+  /* PRODUCT ENDPOINTS */
+
   rpc GetProduct(ProductIdentifier) returns (StoredProduct){
     option (google.api.http) = {
       get: "/api/product"
@@ -36,6 +38,35 @@ service Gateway {
       delete: "/api/product"
     };
   }
+
+  /* LOCATION ENDPOINTS*/  
+
+  rpc GetLocation(LocationIdentifier) returns (StoredLocation){
+    option (google.api.http) = {
+      get: "/api/location"
+    };
+  }
+
+  rpc PutLocation(PutLocationMessage) returns (StoredLocation){
+    option (google.api.http) = {
+      post: "/api/location"
+      body: "*"
+    };
+  }
+
+  rpc SendProduct(MoveProductMessage) returns (MoveProductMessage){
+    option (google.api.http) = {
+      post: "/api/location/sendProduct"
+      body: "*"
+    };
+  }
+
+  rpc ReceiveProduct(MoveProductMessage) returns (MoveProductMessage){
+    option (google.api.http) = {
+      post: "/api/location/receiveProduct"
+      body: "*"
+    };
+  }
 }
 
 service Product{
@@ -43,5 +74,14 @@ service Product{
   rpc GetProduct(ProductIdentifier) returns (StoredProduct){}
   rpc GetProducts(GetProductsRequest) returns (StoredProducts){}
   rpc PutProduct (PutProductRequest) returns (StoredProduct){}
+  rpc UpdateProduct (StoredProduct) returns (StoredProduct){}
   rpc ClearProduct (ClearProductMessage) returns (ClearProductMessage){}
+}
+
+service Location{
+  rpc GetLocation(LocationIdentifier) returns (StoredLocation){}
+  rpc PutLocation(PutLocationMessage) returns (StoredLocation){}
+  rpc UpdateLocation(StoredLocation) returns (StoredLocation){}
+  rpc SendProduct(MoveProductMessage) returns (MoveProductMessage){}
+  rpc ReceiveProduct(MoveProductMessage) returns (MoveProductMessage){}
 }

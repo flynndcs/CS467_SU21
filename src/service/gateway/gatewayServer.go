@@ -10,9 +10,10 @@ import (
 )
 
 var (
-	productConn   = &grpc.ClientConn{}
-	productErr    error
-	productClient service.ProductClient
+	conn           = &grpc.ClientConn{}
+	serviceErr     error
+	ProductClient  service.ProductClient
+	LocationClient service.LocationClient
 )
 
 type GatewayServer struct {
@@ -24,11 +25,10 @@ func NewGatewayServer() *GatewayServer {
 }
 
 func CreateGRPCConnAndClients() {
-	productConn, productErr = grpc.DialContext(context.Background(), "0.0.0.0:8080", grpc.WithBlock(), grpc.WithInsecure())
-	productClient = service.NewProductClient(productConn)
-	if productErr != nil {
-		if productErr != nil {
-			log.Fatalln("Failed to dial server when creating product client:", productErr)
-		}
+	conn, serviceErr = grpc.DialContext(context.Background(), "0.0.0.0:8080", grpc.WithBlock(), grpc.WithInsecure())
+	ProductClient = service.NewProductClient(conn)
+	LocationClient = service.NewLocationClient(conn)
+	if serviceErr != nil {
+		log.Fatalln("Failed to dial server when creating product client:", serviceErr)
 	}
 }

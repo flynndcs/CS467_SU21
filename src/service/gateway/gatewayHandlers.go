@@ -8,7 +8,7 @@ import (
 )
 
 func (s *GatewayServer) GetStatus(ctx context.Context, in *service.StatusRequest) (*service.StatusReply, error) {
-	productStatusReply, productErr := productClient.GetProductStatus(ctx, &service.ProductStatusRequest{})
+	productStatusReply, productErr := ProductClient.GetProductStatus(ctx, &service.ProductStatusRequest{})
 	if productErr != nil {
 		log.Fatalln("Failed when sending a message with product client:", productErr)
 	}

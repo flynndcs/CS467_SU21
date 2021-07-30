@@ -11,10 +11,11 @@ import (
 )
 
 var (
-	accountSubspace subspace.Subspace
-	ProductSubspace subspace.Subspace
-	db              fdb.Database
-	buffer          bytes.Buffer
+	accountSubspace  subspace.Subspace
+	ProductSubspace  subspace.Subspace
+	LocationSubspace subspace.Subspace
+	db               fdb.Database
+	buffer           bytes.Buffer
 )
 
 func EncodeCategories(givenRange []string) (returnBytes []byte) {
@@ -34,6 +35,12 @@ func InitFDB() {
 		log.Fatal(err)
 	}
 	ProductSubspace = productDir.Sub("product")
+
+	locationDir, err := directory.CreateOrOpen(db, []string{"location"}, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	LocationSubspace = locationDir.Sub("location")
 
 	accountDir, err := directory.CreateOrOpen(db, []string{"account"}, nil)
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 )
 
 func (s *GatewayServer) GetProduct(ctx context.Context, in *service.ProductIdentifier) (*service.StoredProduct, error) {
-	response, err := productClient.GetProduct(ctx, in)
+	response, err := ProductClient.GetProduct(ctx, in)
 	if err != nil {
 		log.Fatalln("Failed when sending a message with product client:", err)
 	}
@@ -17,7 +17,7 @@ func (s *GatewayServer) GetProduct(ctx context.Context, in *service.ProductIdent
 }
 
 func (s *GatewayServer) GetProducts(ctx context.Context, in *service.GetProductsRequest) (*service.StoredProducts, error) {
-	response, err := productClient.GetProducts(ctx, in)
+	response, err := ProductClient.GetProducts(ctx, in)
 	if err != nil {
 		log.Fatalln("Failed when sending a message with product client:", err)
 	}
@@ -26,7 +26,7 @@ func (s *GatewayServer) GetProducts(ctx context.Context, in *service.GetProducts
 }
 
 func (s *GatewayServer) PutProduct(ctx context.Context, in *service.PutProductRequest) (*service.StoredProduct, error) {
-	response, err := productClient.PutProduct(ctx, in)
+	response, err := ProductClient.PutProduct(ctx, in)
 	if err != nil {
 		log.Fatalln("Failed to send", err)
 	}
@@ -34,7 +34,7 @@ func (s *GatewayServer) PutProduct(ctx context.Context, in *service.PutProductRe
 }
 
 func (s *GatewayServer) ClearProduct(ctx context.Context, in *service.ClearProductMessage) (*service.ClearProductMessage, error) {
-	response, err := productClient.ClearProduct(ctx, in)
+	response, err := ProductClient.ClearProduct(ctx, in)
 	if err != nil {
 		log.Fatalln("Failed to send", err)
 	}
