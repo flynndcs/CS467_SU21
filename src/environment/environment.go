@@ -73,7 +73,8 @@ func registerHTTPProxy(grpcTarget string, httpTarget string) {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/", Authenticate(*gwmux))
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	mux.Handle("/", Route(*gwmux))
 
 	log.Println("Serving gRPC-Gateway on " + httpTarget)
 	log.Fatalln(http.ListenAndServe(httpTarget, mux))

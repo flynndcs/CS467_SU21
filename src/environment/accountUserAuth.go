@@ -29,7 +29,7 @@ func setupResponse(w *http.ResponseWriter, r *http.Request) {
 	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
 
-func Authenticate(gwmux runtime.ServeMux) http.Handler {
+func Route(gwmux runtime.ServeMux) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, pass, status := r.BasicAuth()
 		setupResponse(&w, r)
