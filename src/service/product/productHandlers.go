@@ -158,6 +158,7 @@ func (s *ProductServer) PutProduct(ctx context.Context, in *service.PutProductRe
 		QuantityInTransit:        0,
 		LocalProductFamily:       in.LocalProductFamily,
 		FullProductFamily:        &fullProductFamily,
+		Unit:                     in.Unit,
 	}
 
 	var buffer bytes.Buffer

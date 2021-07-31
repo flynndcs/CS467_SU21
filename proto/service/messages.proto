@@ -56,6 +56,7 @@ message PutProductRequest{
   repeated string endDestinations = 7;
   int64 totalQuantity = 8;
   LocalProductFamily localProductFamily = 9;
+  string unit = 10;
 }
 
 message StoredProduct{
@@ -71,6 +72,7 @@ message StoredProduct{
   int64 quantityInTransit = 10;
   LocalProductFamily localProductFamily = 11;
   FullProductFamily fullProductFamily = 12;
+  string unit = 13;
 }
 
 message ClearProductMessage{

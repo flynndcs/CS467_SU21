@@ -25,7 +25,8 @@ curl -s -H "Authorization: Bearer $token" -X POST "localhost:8090/api/product" \
             "totalQuantity": 3000,
             "localProductFamily": {
                 "self": {"id": 1}
-            }
+            },
+            "unit": "12 oz bag"
         }' | json_pp
 
 
