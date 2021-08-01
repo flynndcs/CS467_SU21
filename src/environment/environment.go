@@ -2,6 +2,7 @@ package environment
 
 import (
 	"context"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -73,9 +74,36 @@ func registerHTTPProxy(grpcTarget string, httpTarget string) {
 	}
 
 	mux := http.NewServeMux()
+	mux.Handle("/static/upload", http.StripPrefix("/static", uploadStatic()))
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	mux.Handle("/", Route(*gwmux))
 
 	log.Println("Serving gRPC-Gateway on " + httpTarget)
 	log.Fatalln(http.ListenAndServe(httpTarget, mux))
+}
+
+func uploadStatic() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.ParseMultipartForm(10 << 20)
+		file, handler, err := r.FormFile("uploadedFile")
+		if err != nil {
+			log.Println("Could not upload file")
+			return
+		}
+
+		dst, err := os.Create("./static/" + handler.Filename)
+		if err != nil {
+			log.Println("Could not create file destination")
+		}
+		defer dst.Close()
+
+		if _, err := io.Copy(dst, file); err != nil {
+			log.Println("Could not save content to destination file")
+			return
+		}
+
+		defer file.Close()
+		log.Println("Uploaded ", handler.Filename)
+	})
+
 }
