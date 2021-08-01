@@ -72,7 +72,7 @@
                 "productIdentifier": {"id": <id>}, 
                 "name": "<name>", 
                 "categories": [<ordered categories>],
-                "tags": [<ordered tags>], 
+                "tags": [<tags>], 
                 "origin": "<origin>", 
                 "intermediateDestinations": [<destinations>],
                 "endDestinations": [<destinations>], 
