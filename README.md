@@ -23,7 +23,6 @@
 - Using browser, Postman or cURL:
     - (cURL - make sure to enclose URLs in single or double quotes to recognize all query parameters)
     - **Create Account** HTTP POST to localhost:8090/createAccount
-        - With basic auth headers for username, password
         - With body:
         ```
             {
