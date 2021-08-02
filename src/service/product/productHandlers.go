@@ -101,49 +101,58 @@ func (s *ProductServer) PutProduct(ctx context.Context, in *service.PutProductRe
 	var fullProductFamily service.FullProductFamily
 	familyQueue := list.New()
 
-	fullProductFamily.Self = in.ProductIdentifier
-	fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, in.LocalProductFamily)
-
-	if in.LocalProductFamily != nil {
-		if in.LocalProductFamily.ParentProducts != nil {
-			for _, parent := range in.LocalProductFamily.ParentProducts {
-				familyQueue.PushBack(parent)
-			}
-			for familyQueue.Len() > 0 {
-				current := familyQueue.Front().Value.(*service.ProductIdentifier)
-				product, productError := s.GetProduct(ctx, current)
-				if productError != nil {
-					log.Printf("Could not get parents from product %v", current.Id)
-				}
-				fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, product.LocalProductFamily)
-				if product.LocalProductFamily.ParentProducts != nil {
-					for _, parent := range product.LocalProductFamily.ParentProducts {
-						familyQueue.PushBack(parent)
-					}
-				}
-				familyQueue.Remove(familyQueue.Front())
-			}
-		}
-		if in.LocalProductFamily.ChildProducts != nil {
-			for _, child := range in.LocalProductFamily.ChildProducts {
-				familyQueue.PushBack(child)
-			}
-			for familyQueue.Len() > 0 {
-				current := familyQueue.Front().Value.(*service.ProductIdentifier)
-				product, productError := s.GetProduct(ctx, current)
-				if productError != nil {
-					log.Printf("Could not get parents from product %v", current.Id)
-				}
-				fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, product.LocalProductFamily)
-				if product.LocalProductFamily.ChildProducts != nil {
-					for _, child := range product.LocalProductFamily.ChildProducts {
-						familyQueue.PushBack(child)
-					}
-				}
-				familyQueue.Remove(familyQueue.Front())
-			}
+	localProductFamily := in.LocalProductFamily
+	if localProductFamily == nil {
+		localProductFamily = &service.LocalProductFamily{
+			Self:           in.ProductIdentifier,
+			ParentProducts: make([]*service.ProductIdentifier, 0),
+			ChildProducts:  make([]*service.ProductIdentifier, 0),
 		}
 	}
+
+	fullProductFamily.Self = in.ProductIdentifier
+	fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, localProductFamily)
+
+	if localProductFamily.ParentProducts != nil {
+		for _, parent := range localProductFamily.ParentProducts {
+			familyQueue.PushBack(parent)
+		}
+		for familyQueue.Len() > 0 {
+			current := familyQueue.Front().Value.(*service.ProductIdentifier)
+			product, productError := s.GetProduct(ctx, current)
+			if productError != nil {
+				log.Printf("Could not get parents from product %v", current.Id)
+			}
+			fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, product.LocalProductFamily)
+			if product.LocalProductFamily.ParentProducts != nil {
+				for _, parent := range product.LocalProductFamily.ParentProducts {
+					familyQueue.PushBack(parent)
+				}
+			}
+			familyQueue.Remove(familyQueue.Front())
+		}
+	}
+	if localProductFamily.ChildProducts != nil {
+		for _, child := range localProductFamily.ChildProducts {
+			familyQueue.PushBack(child)
+		}
+		for familyQueue.Len() > 0 {
+			current := familyQueue.Front().Value.(*service.ProductIdentifier)
+			product, productError := s.GetProduct(ctx, current)
+			if productError != nil {
+				log.Printf("Could not get parents from product %v", current.Id)
+			}
+			fullProductFamily.LocalProductFamilies = append(fullProductFamily.LocalProductFamilies, product.LocalProductFamily)
+			if product.LocalProductFamily.ChildProducts != nil {
+				for _, child := range product.LocalProductFamily.ChildProducts {
+					familyQueue.PushBack(child)
+				}
+			}
+			familyQueue.Remove(familyQueue.Front())
+		}
+	}
+
+	// STORE NULLS FIX BUG ON GET BY ID
 
 	storedProduct := service.StoredProduct{
 		ProductIdentifier:        in.ProductIdentifier,
@@ -156,7 +165,7 @@ func (s *ProductServer) PutProduct(ctx context.Context, in *service.PutProductRe
 		QuantityByLocation:       map[string]int64{in.Origin: in.TotalQuantity},
 		TotalQuantity:            in.TotalQuantity,
 		QuantityInTransit:        0,
-		LocalProductFamily:       in.LocalProductFamily,
+		LocalProductFamily:       localProductFamily,
 		FullProductFamily:        &fullProductFamily,
 		Unit:                     in.Unit,
 	}
